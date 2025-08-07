@@ -1,51 +1,53 @@
-import { StyleSheet, View, Image,Text } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
-import Ben1 from '../assets/ben1.png'
-import Ben2 from '../assets/ben2.png'
-import Tuceng from '../assets/tuceng.png'
-export default function Carts() {
 
-    return (
-        <View style={styles.cartbox}>
-            <View style={styles.cart}>
-                <Image source={Ben1} style={styles.images} />
-                <Text style={styles.cartText}>法律法规</Text>
-            </View>
-            <View style={styles.cart}>
-                <Image source={Tuceng} style={styles.images} />
-                <Text style={styles.cartText}>法治百科</Text>
-            </View>
-            <View style={styles.cart}>
-                <Image source={Ben2} style={styles.images} />
-                <Text style={styles.cartText}>经典案例</Text>
-            </View>
-        </View>
-    )
+export default function Carts() {
+  const categories = [
+    { id: 1, name: '塔罗占卜', icon: '🔮' },
+    { id: 2, name: '星座运势', icon: '⭐' },
+    { id: 3, name: '月相占卜', icon: '🌙' },
+  ]
+
+  return (
+    <View style={styles.container}>
+      {categories.map((category) => (
+        <TouchableOpacity key={category.id} style={styles.card}>
+          <Text style={styles.iconText}>{category.icon}</Text>
+          <Text style={styles.cardText}>{category.name}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
-    cartbox: {
-        width: "100%",
-        height: "40%",
-        justifyContent: "space-around",
-        alignItems: 'center',
-        flexDirection: 'row'
-    },
-    cart: {
-        width: 80,
-        height: 90,
-        backgroundColor: "#dbdfff"
-    },
-    images: {
-        width: "50%",
-        height: "50%",
-        marginLeft: "26%",
-        marginTop: "9%"
-    },
-    cartText:{
-        textAlign:'center',
-        marginTop:"10%",
-        fontSize:13,
-        fontWeight:700
-    }
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+  },
+  card: {
+    width: '30%',
+    height: 100,
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    marginBottom: 15,
+  },
+  iconText: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  cardText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    textAlign: 'center',
+  },
 })

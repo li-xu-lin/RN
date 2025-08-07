@@ -17,9 +17,18 @@ router.post('/login', async (req, res) => {
 
         if (data.length > 0) {
         if (data[0].pwd === pwd) {
+            // 转换avatar路径为完整HTTP URL
+            const userData = { ...data[0]._doc || data[0] };
+            if (userData.avatar && userData.avatar.includes('/assets/')) {
+                // 处理 ./assets/ 或 ../assets/ 两种格式
+                const fileName = userData.avatar.replace(/\.\.?\/assets\//, '');
+                userData.avatar = `http://192.168.100.199:3010/uploads/${fileName}`;
+                console.log('🔄 转换头像路径:', fileName, '→', userData.avatar);
+            }
+            
             return res.status(200).json({
                 code: 200,
-                data:data[0],
+                data: userData,
                 msg: "登录成功"
             });
         } else {

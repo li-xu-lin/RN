@@ -3,6 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser'); // Cookie解析
 const connectDB = require('./config/db'); // 数据库连接
 const http = require('http');
+const path = require('path'); // 添加path模块
 
 
 // 创建Express应用实例
@@ -17,7 +18,10 @@ app.use(cors({
 }));
 app.use(express.json());  
 app.use(express.urlencoded({ extended: true })); 
-app.use(cookieParser());  
+app.use(cookieParser());
+
+// 添加静态文件服务，让图片可以通过HTTP访问
+app.use('/uploads', express.static(path.join(__dirname, '../MyApp/src/assets')));  
 
 
 const PORT = 3010;

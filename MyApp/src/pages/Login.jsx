@@ -9,7 +9,7 @@ import { loginApi } from '../request/auth'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f5ff',
   },
   header: {
     paddingTop: 60,
@@ -19,12 +19,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#6B46C1',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#8B5CF6',
   },
   formContainer: {
     paddingHorizontal: 20,
@@ -34,21 +34,23 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#333',
+    color: '#6B46C1',
     marginBottom: 8,
     fontWeight: '500',
   },
   input: {
     height: 50,
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 15,
     fontSize: 16,
     color: '#333',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    borderWidth: 1,
+    borderColor: '#E0E7FF',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 1,
+    shadowRadius: 4,
     elevation: 2,
   },
   forgotPassword: {
@@ -56,21 +58,21 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   forgotPasswordText: {
-    color: '#3498db',
+    color: '#8B5CF6',
     fontSize: 14,
   },
   loginButton: {
     height: 50,
-    backgroundColor: '#3498db',
-    borderRadius: 8,
+    backgroundColor: '#8B5CF6',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: '#3498db',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   loginButtonText: {
     color: '#fff',
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   registerLink: {
-    color: '#3498db',
+    color: '#8B5CF6',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -140,11 +142,11 @@ export default function Login({ onLoginSuccess }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f8f5ff" />
 
       <View style={styles.header}>
-        <Text style={styles.title}>欢迎登录</Text>
-        <Text style={styles.subtitle}>请输入您的账号信息</Text>
+        <Text style={styles.title}>✨ 欢迎来到星占奇缘</Text>
+        <Text style={styles.subtitle}>🔮 探索你的命运密码</Text>
       </View>
 
       <View style={styles.formContainer}>
@@ -153,7 +155,7 @@ export default function Login({ onLoginSuccess }) {
           <TextInput
             style={styles.input}
             placeholder="请输入手机号"
-            placeholderTextColor="#999"
+            placeholderTextColor="#B8B5FF"
             value={phone}
             onChangeText={setPhone}
           />
@@ -164,7 +166,7 @@ export default function Login({ onLoginSuccess }) {
           <TextInput
             style={styles.input}
             placeholder="请输入密码"
-            placeholderTextColor="#999"
+            placeholderTextColor="#B8B5FF"
             value={pwd}
             onChangeText={setPwd}
             secureTextEntry
@@ -179,11 +181,11 @@ export default function Login({ onLoginSuccess }) {
           style={styles.loginButton}
           onPress={handleLogin}
         >
-          <Text style={styles.loginButtonText}>登录</Text>
+          <Text style={styles.loginButtonText}>开始占卜之旅</Text>
         </TouchableOpacity>
 
         <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>没有账号? </Text>
+          <Text style={styles.registerText}>还没有账号? </Text>
           <TouchableOpacity>
             <Text style={styles.registerLink}>立即注册</Text>
           </TouchableOpacity>
