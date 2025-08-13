@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native'
-import { Button, Snackbar } from 'react-native-paper';
+import { Snackbar } from 'react-native-paper';
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
 export default function Login({ onLoginSuccess }) {
   const [phone, setPhone] = useState('')
   const [pwd, setPwd] = useState('')
-  const [visible, setVisible] = React.useState(false);
-  const [snackbarText, setSnackbarText] = React.useState('');
+  const [visible, setVisible] = useState(false);
+  const [snackbarText, setSnackbarText] = useState('');
   const onDismissSnackBar = () => setVisible(false);
   const handleLogin = async () => {
     let params = {
@@ -116,8 +116,6 @@ export default function Login({ onLoginSuccess }) {
     if (res.success) {
       if (res.data.code === 200) {
         AsyncStorage.setItem('token', "123456")
-        console.log(JSON.stringify(res.data.data));
-        
         AsyncStorage.setItem('user', JSON.stringify(res.data.data))
         setSnackbarText(res.data.msg)
         setVisible(true)

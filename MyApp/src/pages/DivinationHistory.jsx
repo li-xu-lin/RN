@@ -1,79 +1,80 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/common/Header';
 import Card from '../components/common/Card';
+import { getTarotHistoryApi } from '../request/auth';
 
 const DivinationHistory = ({ navigation }) => {
-  const [selectedFilter, setSelectedFilter] = useState('all');
 
-  const historyData = [
-    {
-      id: 1,
-      type: 'tarot',
-      title: '爱情塔罗占卜',
-      question: '我的爱情何时到来？',
-      result: '恋人牌 - 新的爱情即将到来',
-      date: '2024-01-15',
-      time: '14:30',
-      score: 85,
-      icon: '🔮'
-    },
-    {
-      id: 2,
-      type: 'zodiac',
-      title: '白羊座运势',
-      question: '今日运势如何？',
-      result: '综合运势良好，适合新的开始',
-      date: '2024-01-14',
-      time: '09:15',
-      score: 78,
-      icon: '♈'
-    },
-    {
-      id: 3,
-      type: 'moon',
-      title: '月相占卜',
-      question: '本周事业发展如何？',
-      result: '满月能量加持，事业有突破',
-      date: '2024-01-13',
-      time: '20:45',
-      score: 92,
-      icon: '🌕'
-    },
-    {
-      id: 4,
-      type: 'tarot',
-      title: '财运塔罗',
-      question: '近期财运如何？',
-      result: '权杖王牌 - 财运稳步上升',
-      date: '2024-01-12',
-      time: '16:20',
-      score: 73,
-      icon: '🔮'
-    },
-    {
-      id: 5,
-      type: 'zodiac',
-      title: '双子座配对',
-      question: '与狮子座的配对如何？',
-      result: '匹配度87% - 非常合适',
-      date: '2024-01-11',
-      time: '11:30',
-      score: 87,
-      icon: '♊'
+  const [historyData, setHistoryData] = useState([]);
+  const [stats, setStats] = useState({
+    totalCount: 0,
+    thisMonthCount: 0,
+    averageScore: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  const [user, setUser] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+
+
+
+  // 获取用户信息
+  const getUserInfo = async () => {
+    try {
+      const userObj = await AsyncStorage.getItem('user');
+      if (userObj) {
+        const userData = JSON.parse(userObj);
+        setUser(userData);
+        return userData;
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
     }
-  ];
+    return null;
+  };
 
-  const filters = [
-    { id: 'all', name: '全部', icon: '📋' },
-    { id: 'tarot', name: '塔罗', icon: '🔮' },
-    { id: 'zodiac', name: '星座', icon: '⭐' },
-    { id: 'moon', name: '月相', icon: '🌙' }
-  ];
+  // 获取占卜历史
+  const fetchHistory = async () => {
+    try {
+      setLoading(true);
 
-  const filteredHistory = selectedFilter === 'all' 
-    ? historyData 
-    : historyData.filter(item => item.type === selectedFilter);
+      const userData = await getUserInfo();
+      
+      if (!userData || !userData._id) {
+        setHistoryData([]);
+        setStats({ totalCount: 0, thisMonthCount: 0, averageScore: 0 });
+        return;
+      }
+
+      const limit = showAll ? 50 : 5; // 显示全部时获取50条，否则5条
+      const result = await getTarotHistoryApi(userData._id, limit);
+      
+      if (result.success && result.data.data) {
+        setHistoryData(result.data.data.history || []);
+        setStats(result.data.data.stats || { totalCount: 0, thisMonthCount: 0, averageScore: 0 });
+      } else {
+        setHistoryData([]);
+        setStats({ totalCount: 0, thisMonthCount: 0, averageScore: 0 });
+      }
+    } catch (error) {
+      console.error('获取占卜历史失败:', error);
+      setHistoryData([]);
+      setStats({ totalCount: 0, thisMonthCount: 0, averageScore: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 组件挂载时获取数据
+  useEffect(() => {
+    fetchHistory();
+  }, [showAll]);
+
+
+
+
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#4ECDC4';
@@ -82,7 +83,7 @@ const DivinationHistory = ({ navigation }) => {
   };
 
   const renderHistoryItem = (item) => (
-    <Card key={item.id} onPress={() => navigation.navigate('DivinationDetail', { id: item.id })}>
+    <Card key={item.id} onPress={() => navigation.navigate('DivinationDetail', { historyId: item.id })}>
       <View style={styles.historyItem}>
         <View style={styles.historyIcon}>
           <Text style={styles.iconText}>{item.icon}</Text>
@@ -109,7 +110,11 @@ const DivinationHistory = ({ navigation }) => {
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      style={styles.container} 
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+    >
       <Header 
         title="📋 占卜记录"
         rightComponent={
@@ -124,71 +129,60 @@ const DivinationHistory = ({ navigation }) => {
         <Card style={styles.statsCard}>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>127</Text>
+              <Text style={styles.statNumber}>{stats.totalCount}</Text>
               <Text style={styles.statLabel}>总占卜次数</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>15</Text>
+              <Text style={styles.statNumber}>{stats.thisMonthCount}</Text>
               <Text style={styles.statLabel}>本月占卜</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>82</Text>
+              <Text style={styles.statNumber}>{stats.averageScore}</Text>
               <Text style={styles.statLabel}>平均准确度</Text>
             </View>
           </View>
         </Card>
       </View>
 
-      {/* 筛选器 */}
-      <View style={styles.filterSection}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterContainer}>
-            {filters.map((filter) => (
-              <TouchableOpacity
-                key={filter.id}
-                style={[
-                  styles.filterItem,
-                  selectedFilter === filter.id && styles.filterActive
-                ]}
-                onPress={() => setSelectedFilter(filter.id)}
-              >
-                <Text style={styles.filterIcon}>{filter.icon}</Text>
-                <Text style={[
-                  styles.filterText,
-                  selectedFilter === filter.id && styles.filterTextActive
-                ]}>
-                  {filter.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
+
 
       {/* 历史记录列表 */}
       <View style={styles.historySection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            📜 {filters.find(f => f.id === selectedFilter)?.name}记录
+            📜 全部记录
           </Text>
-          <Text style={styles.recordCount}>共{filteredHistory.length}条</Text>
+          <TouchableOpacity onPress={() => {
+            setShowAll(!showAll);
+          }}>
+            <Text style={styles.viewAllText}>{showAll ? '收起' : '查看全部'}</Text>
+          </TouchableOpacity>
         </View>
         
-        {filteredHistory.map(renderHistoryItem)}
-        
-        {filteredHistory.length === 0 && (
-          <Card style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>🌟</Text>
-            <Text style={styles.emptyTitle}>暂无记录</Text>
-            <Text style={styles.emptyDesc}>
-              还没有{filters.find(f => f.id === selectedFilter)?.name}占卜记录
-            </Text>
-            <TouchableOpacity style={styles.startBtn} onPress={() => navigation.goBack()}>
-              <Text style={styles.startBtnText}>开始占卜</Text>
-            </TouchableOpacity>
+        {loading ? (
+          <Card style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#8B5CF6" />
+            <Text style={styles.loadingText}>正在加载占卜记录...</Text>
           </Card>
+        ) : (
+          <>
+            {(showAll ? historyData : historyData.slice(0, 3)).map(renderHistoryItem)}
+            
+            {historyData.length === 0 && (
+              <Card style={styles.emptyCard}>
+                <Text style={styles.emptyIcon}>🌟</Text>
+                <Text style={styles.emptyTitle}>暂无记录</Text>
+                <Text style={styles.emptyDesc}>
+                  还没有占卜记录
+                </Text>
+                <TouchableOpacity style={styles.startBtn} onPress={() => navigation.navigate('TarotReading')}>
+                  <Text style={styles.startBtnText}>开始占卜</Text>
+                </TouchableOpacity>
+              </Card>
+            )}
+          </>
         )}
       </View>
     </ScrollView>
@@ -199,6 +193,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f5ff',
+  },
+  scrollContent: {
+    paddingBottom: 120, // 为TabBar留出充足空间
   },
   searchIcon: {
     fontSize: 18,
@@ -295,14 +292,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#6B46C1',
   },
-  recordCount: {
+  viewAllText: {
     fontSize: 14,
     color: '#8B5CF6',
     fontWeight: '500',
   },
   historyItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    minHeight: 120, // 设置具体的最小高度
+    paddingVertical: 15, // 添加上下内边距
   },
   historyIcon: {
     width: 50,
@@ -364,6 +363,17 @@ const styles = StyleSheet.create({
   moreBtnText: {
     fontSize: 16,
     color: '#999',
+  },
+  
+  // 加载状态
+  loadingCard: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
   },
   
   // 空状态

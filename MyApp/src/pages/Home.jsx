@@ -1,273 +1,385 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Animated } from 'react-native'
-import React, { useState, useEffect, useRef } from 'react'
-import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import AnimatedTouchable from '../components/common/AnimatedTouchable';
-import PulseAnimation from '../components/common/PulseAnimation';
+import React, { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
+import { getDailyFortuneApi, getDailyZodiacFateApi, getDailyDivinationStatusApi } from '../request/auth'
+
 
 export default function Home() {
   const nav = useNavigation()
   const [user, setUser] = useState(null)
-  
-  // 动画相关
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const slideAnim = useRef(new Animated.Value(50)).current
-  const scaleAnim = useRef(new Animated.Value(0.8)).current
+  const [color, setColor] = useState('')
+  const [num, setNum] = useState('')
+  const [colorDesc, setColorDesc] = useState('')
+  const [numDesc, setNumDesc] = useState('')
+  const [zhiShu, setZhishu] = useState(0)
+  const [yunShi, setYunShi] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [err, setErr] = useState(false)
+  // 星座缘分相关状态
+  const [zodiacFate, setZodiacFate] = useState(null)
+  // 占卜次数相关状态
+  const [divinationStatus, setDivinationStatus] = useState({
+    currentCount: 0,
+    maxCount: 3,
+    remainingCount: 3,
+    vipType: '免费',
+    canDivine: true
+  })
+
+  // 刷新占卜次数状态的函数
+  const refreshDivinationStatus = async (userId) => {
+    try {
+      const divinationRes = await getDailyDivinationStatusApi(userId);
+      if (divinationRes.success) {
+        setDivinationStatus(divinationRes.data.data);
+      }
+    } catch (error) {
+      console.log('刷新占卜状态失败:', error);
+    }
+  }
 
   const getUser = async () => {
     try {
       const userObj = await AsyncStorage.getItem('user')
+
       if (userObj) {
-        setUser(JSON.parse(userObj))
+        const users = JSON.parse(userObj)
+        setUser(users)
+
+        if (users && users._id) {
+          // 从服务端获取最新的每日运势数据
+          const res = await getDailyFortuneApi(users._id);
+          if (res.success && res.data.data.dailyFortune) {
+            const fortuneData = res.data.data.dailyFortune;
+            const userData = res.data.data;
+
+            // 更新运势状态
+            setColor(fortuneData.luckyColor)
+            setNum(fortuneData.luckyNumber)
+            setZhishu(fortuneData.fortuneScore)
+            setYunShi(fortuneData.yunShi)
+            setColorDesc(fortuneData.luckyColorDesc)
+            setNumDesc(fortuneData.luckyNumberDesc)
+
+            // 获取星座缘分数据
+            const zodiacRes = await getDailyZodiacFateApi(users._id);
+            let zodiacData = null;
+            if (zodiacRes.success) {
+              zodiacData = zodiacRes.data.data;
+              setZodiacFate(zodiacData);
+            }
+
+            // 获取占卜次数状态
+            const divinationRes = await getDailyDivinationStatusApi(users._id);
+            if (divinationRes.success) {
+              setDivinationStatus(divinationRes.data.data);
+            }
+
+            // 更新用户信息
+            const updatedUser = {
+              ...users,
+              dailyFortune: fortuneData,
+              level: userData.level,
+              levelTitle: userData.levelTitle,
+              exp: userData.exp,
+              username: userData.username,
+              imgs: userData.imgs
+            };
+            setUser(updatedUser);
+
+            // 同步到本地存储
+            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+
+            setIsLoading(false)
+            setErr(false)
+          } else {
+            // 如果获取服务端数据失败，使用本地数据作为备用
+            if (users.dailyFortune) {
+              setColor(users.dailyFortune.luckyColor)
+              setNum(users.dailyFortune.luckyNumber)
+              setZhishu(users.dailyFortune.fortuneScore)
+              setYunShi(users.dailyFortune.yunShi)
+              setColorDesc(users.dailyFortune.luckyColorDesc)
+              setNumDesc(users.dailyFortune.luckyNumberDesc)
+              setIsLoading(false)
+              setErr(false)
+            } else {
+              setErr(true)
+              setIsLoading(false)
+            }
+          }
+        } else {
+          setErr(true)
+          setIsLoading(false)
+        }
+      } else {
+        setErr(true)
+        setIsLoading(false)
       }
     } catch (error) {
-      console.log('获取用户信息失败:', error)
+      setErr(true)
+      setIsLoading(false)
     }
   }
 
-  // 页面加载动画
-  const startLoadAnimation = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }
+
+
+
+
 
   useEffect(() => {
-    getUser()
-    startLoadAnimation()
+    const init = async () => {
+      try {
+        setIsLoading(true);
+        setErr(false);
+
+        await getUser();
+      } catch (error) {
+        setErr(true);
+        setIsLoading(false);
+      }
+    };
+
+    init();
   }, [])
+
+  // 监听页面焦点，当从其他页面返回时刷新占卜状态
+  useFocusEffect(
+    React.useCallback(() => {
+      // 页面获得焦点时，刷新占卜次数状态
+      const refreshStatus = async () => {
+        try {
+          const userObj = await AsyncStorage.getItem('user');
+          if (userObj) {
+            const users = JSON.parse(userObj);
+            if (users && users._id) {
+              await refreshDivinationStatus(users._id);
+            }
+          }
+        } catch (error) {
+          console.log('刷新状态失败:', error);
+        }
+      };
+      
+      refreshStatus();
+    }, [])
+  )
 
   return (
     <View style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
+      {/* 主滚动容器 */}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false} // 隐藏滚动条
         contentContainerStyle={styles.scrollContent}
       >
-      <View style={styles.content}>
-        {/* 头部问候 */}
-        <View style={styles.header}>
-          <View style={styles.greetingSection}>
-            <Text style={styles.greeting}>✨ 你好，{user?.username || '神秘占卜师'}</Text>
-            <Text style={styles.subGreeting}>今天想要探索什么奥秘呢？</Text>
-          </View>
-          <AnimatedTouchable 
-            style={styles.profileBtn} 
-            onPress={() => nav.navigate('MyTab')}
-            animationType="bounce"
-          >
-            {user?.avatar ? (
-              <Text style={styles.avatarText}>👤</Text>
-            ) : (
-              <Text style={styles.avatarText}>✨</Text>
-            )}
-          </AnimatedTouchable>
-        </View>
-
-        {/* 今日运势卡片 */}
-        <Animated.View style={[styles.dailySection, {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }]
-        }]}>
-          <View style={styles.dailyCard}>
-            <View style={styles.dailyHeader}>
-              <Text style={styles.dailyTitle}>🌟 今日运势</Text>
-              <Text style={styles.dailyDate}>{new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}</Text>
-            </View>
-            
-            <View style={styles.fortuneGrid}>
-              <View style={styles.fortuneItem}>
-                <Text style={styles.fortuneEmoji}>🎨</Text>
-                <Text style={styles.fortuneLabel}>幸运色</Text>
-                <Text style={styles.fortuneValue}>薰衣草紫</Text>
-              </View>
-              <View style={styles.fortuneItem}>
-                <Text style={styles.fortuneEmoji}>🔢</Text>
-                <Text style={styles.fortuneLabel}>幸运数字</Text>
-                <Text style={styles.fortuneValue}>7</Text>
-              </View>
-              <View style={styles.fortuneItem}>
-                <Text style={styles.fortuneEmoji}>⭐</Text>
-                <Text style={styles.fortuneLabel}>运势指数</Text>
-                <Text style={styles.fortuneValue}>85分</Text>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.greetingSection}>
+              <Text style={styles.greeting}>✨ 你好，{user?.username || '神秘占卜师'}</Text>
+              <View style={styles.userLevelInfo}>
+                <Text style={styles.subGreeting}>
+                  {user?.levelTitle || '初学者'} • Lv.{user?.level || 1}
+                </Text>
               </View>
             </View>
+            <TouchableOpacity
+              style={styles.profileBtn}
+              onPress={() => nav.navigate('MyTab')}
+            >
+              {user?.imgs ? (
+                <Image source={{ uri: user.imgs }} style={styles.profileAvatar} />
+              ) : (
+                <Text style={styles.avatarText}>✨</Text>
+              )}
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.fortuneAdvice}>
-              <Text style={styles.adviceText}>
-                今天是充满灵感的一天，相信你的直觉，它会为你指引正确的方向。
-              </Text>
+          {/* ==================== 今日运势卡片区域 ==================== */}
+          <View style={styles.dailySection}>
+            <View style={styles.dailyCard}>
+              {/* 运势卡片头部 */}
+              <View style={styles.dailyHeader}>
+                <Text style={styles.dailyTitle}>🌟 今日运势</Text>
+                <Text style={styles.dailyDate}>{new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}</Text>
+              </View>
+
+              {/* 运势信息网格 */}
+              <View style={styles.fortuneGrid}>
+                {/* 幸运色显示 */}
+                <View style={styles.fortuneItem}>
+                  <Text style={styles.fortuneEmoji}>🎨</Text>
+                  <Text style={styles.fortuneLabel}>幸运色</Text>
+                  <Text style={styles.fortuneValue}>{isLoading ? '-' : color || '-'}</Text>
+                </View>
+                {/* 幸运数字显示 */}
+                <View style={styles.fortuneItem}>
+                  <Text style={styles.fortuneEmoji}>🔢</Text>
+                  <Text style={styles.fortuneLabel}>幸运数字</Text>
+                  <Text style={styles.fortuneValue}>{isLoading ? '-' : num || '-'}</Text>
+                </View>
+                {/* 运势指数显示 */}
+                <View style={styles.fortuneItem}>
+                  <Text style={styles.fortuneEmoji}>⭐</Text>
+                  <Text style={styles.fortuneLabel}>运势指数</Text>
+                  <Text style={styles.fortuneValue}>
+                    {isLoading ? '-' : (zhiShu ? `${zhiShu}分` : '-')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* 运势建议区域 */}
+              <View style={styles.yunShi}>
+                {isLoading ? (
+                  /* 加载状态 */
+                  <Text style={styles.adviceText}>运势加载中...</Text>
+                ) : err ? (
+                  /* 错误状态 */
+                  <Text style={styles.adviceText}>运势数据获取失败，请检查网络连接后重试</Text>
+                ) : yunShi ? (
+                  /* 有建议内容时的显示 */
+                  <View>
+                    {/* 显示建议文本（限制40字符） */}
+                    <Text style={styles.adviceText}>
+                      {yunShi.length > 40 ? `${yunShi.substring(0, 40)}...` : yunShi}
+                    </Text>
+                    {/* 如果内容超过40字符，显示"详细"按钮 */}
+                    {yunShi.length > 40 && (
+                      <TouchableOpacity
+                        style={styles.detailButton}
+                        onPress={() => nav.navigate('JinRiYunShi', {
+                          fortuneData: {
+                            dailyColor: color,
+                            dailyNumber: num,
+                            fortuneScore: zhiShu,
+                            fortuneAdvice: yunShi,
+                            dailyColorDesc: colorDesc,
+                            dailyNumberDesc: numDesc
+                          }
+                        })}
+                      >
+                        <Text style={styles.detailButtonText}>详细 →</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ) : (
+                  /* 无建议内容时的显示 */
+                  <Text style={styles.adviceText}>暂无运势建议</Text>
+                )}
+              </View>
             </View>
           </View>
-        </Animated.View>
 
-        {/* 快速占卜区域 */}
-        <Animated.View style={[styles.quickSection, {
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }]
-        }]}>
-          <Text style={styles.sectionTitle}>🔮 开始占卜</Text>
-          <View style={styles.quickGrid}>
-            <AnimatedTouchable 
-              style={styles.quickCard} 
-              onPress={() => nav.navigate('TarotReading', { spreadType: 'single', question: '我的今日指引' })}
-              animationType="lift"
-            >
-              <Text style={styles.quickIcon}>🃏</Text>
-              <Text style={styles.quickTitle}>塔罗占卜</Text>
-              <Text style={styles.quickDesc}>探索内心的声音</Text>
-            </AnimatedTouchable>
-
-            <AnimatedTouchable 
-              style={styles.quickCard} 
-              onPress={() => nav.navigate('ZodiacTab')}
-              animationType="lift"
-            >
-              <Text style={styles.quickIcon}>⭐</Text>
-              <Text style={styles.quickTitle}>星座运势</Text>
-              <Text style={styles.quickDesc}>了解今日星象</Text>
-            </AnimatedTouchable>
-
-            <AnimatedTouchable 
-              style={styles.quickCard} 
-              onPress={() => nav.navigate('MoonPhase')}
-              animationType="lift"
-            >
-              <Text style={styles.quickIcon}>🌙</Text>
-              <Text style={styles.quickTitle}>月相占卜</Text>
-              <Text style={styles.quickDesc}>感受月亮能量</Text>
-            </AnimatedTouchable>
-
-            <AnimatedTouchable 
-              style={styles.quickCard} 
-              onPress={() => nav.navigate('DivinationTab')}
-              animationType="lift"
-            >
-              <Text style={styles.quickIcon}>💎</Text>
-              <Text style={styles.quickTitle}>水晶占卜</Text>
-              <Text style={styles.quickDesc}>水晶的神秘力量</Text>
-            </AnimatedTouchable>
-          </View>
-        </Animated.View>
-
-        {/* 每日一卡 */}
-        <View style={styles.cardSection}>
-          <Text style={styles.sectionTitle}>🎯 每日一卡</Text>
-          <View style={styles.dailyCardContainer}>
-            <PulseAnimation 
-              style={styles.tarotCardDisplay}
-              pulseType="scale"
-              duration={2000}
-              minScale={0.99}
-              maxScale={1.01}
-            >
-              <Text style={styles.cardSymbol}>⭐</Text>
-              <Text style={styles.cardName}>星星</Text>
-            </PulseAnimation>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardMeaning}>希望与指引</Text>
-              <Text style={styles.cardDescription}>
-                星星牌代表希望、灵感和精神指引。今天要保持乐观的心态，
-                相信美好的事情即将发生。
-              </Text>
-              <TouchableOpacity style={styles.detailBtn}>
-                <Text style={styles.detailBtnText}>查看详情 →</Text>
+          {/* ==================== 快速占卜区域 ==================== */}
+          <View style={styles.quickSection}>
+            <Text style={styles.sectionTitle}>🔮 开始占卜</Text>
+            {/* 占卜选项网格 */}
+            <View style={styles.quickGrid}>
+              <TouchableOpacity
+                style={[
+                  styles.quickCard,
+                  !divinationStatus.canDivine && styles.disabledCard
+                ]}
+                onPress={() => {
+                  if (divinationStatus.canDivine) {
+                    // 立即更新UI显示（乐观更新）
+                    if (divinationStatus.vipType !== '季会员') {
+                      const newStatus = {
+                        ...divinationStatus,
+                        currentCount: divinationStatus.currentCount + 1,
+                        remainingCount: divinationStatus.remainingCount - 1,
+                        canDivine: (divinationStatus.currentCount + 1) < divinationStatus.maxCount
+                      };
+                      setDivinationStatus(newStatus);
+                    }
+                    nav.navigate('TarotReading', { spreadType: 'single', question: '我的今日指引' })
+                  } else {
+                    alert(`${divinationStatus.vipType}用户每日最多可进行${divinationStatus.maxCount}次占卜，今日次数已用完！\n\n升级会员解锁更多次数~`)
+                  }
+                }}
+              >
+                <Text style={styles.quickIcon}>🃏</Text>
+                <View style={styles.quickContent}>
+                  <Text style={styles.quickTitle}>塔罗占卜</Text>
+                  <Text style={[
+                    styles.quickDesc,
+                    !divinationStatus.canDivine && styles.disabledText
+                  ]}>
+                    {divinationStatus.vipType === '季会员' 
+                      ? `探索内心的声音 (无限次数)`
+                      : divinationStatus.canDivine 
+                        ? `探索内心的声音 (${divinationStatus.currentCount}/${divinationStatus.maxCount})`
+                        : `今日次数已用完 (${divinationStatus.currentCount}/${divinationStatus.maxCount})`
+                    }
+                  </Text>
+                </View>
+                {/* 会员标识 */}
+                {divinationStatus.vipType !== '免费' && (
+                  <View style={styles.vipBadge}>
+                    <Text style={styles.vipText}>{divinationStatus.vipType}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
+
+
+                        </View>
+          </View>
+
+          {/* ==================== 今日星座缘分区域 ==================== */}
+          <View style={styles.zodiacSection}>
+            <Text style={styles.sectionTitle}>💫 今日星座缘分</Text>
+            <View style={styles.zodiacCard}>
+              {/* 用户星座显示 */}
+              <View style={styles.userZodiacContainer}>
+                <Text style={styles.userZodiacLabel}>你的星座</Text>
+                <Text style={styles.userZodiacText}>
+                  {isLoading ? '...' : (zodiacFate?.userZodiac || '双鱼座')}
+                </Text>
+              </View>
+
+              {/* 星座缘分头部 */}
+              <View style={styles.zodiacHeader}>
+                <View style={styles.targetZodiacContainer}>
+                  <Text style={styles.zodiacLabel}>今日缘分星座</Text>
+                  <Text style={styles.zodiacTarget}>
+                    {isLoading ? '加载中...' : (zodiacFate?.targetZodiac || '双鱼座')}
+                  </Text>
+                </View>
+                <View style={styles.fateTypeContainer}>
+                  <Text style={styles.fateType}>
+                    {isLoading ? '-' : (zodiacFate?.fateType || '友情')}
+                  </Text>
+                  <Text style={styles.compatibilityScore}>
+                    {isLoading ? '-' : (zodiacFate?.compatibilityScore ? `${zodiacFate.compatibilityScore}%` : '88%')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* 缘分描述 */}
+              <View style={styles.fateDescription}>
+                <Text style={styles.fateDescText}>
+                  {isLoading ? '正在为你寻找今日的星座缘分...' : 
+                    (zodiacFate?.fateDescription || '今天与双鱼座的人能建立深厚友谊，你们会发现许多共同话题')
+                  }
+                </Text>
+              </View>
+
+              {/* 相处建议 */}
+              <View style={styles.fateAdvice}>
+                <Text style={styles.adviceLabel}>💡 相处建议</Text>
+                <Text style={styles.adviceText}>
+                  {isLoading ? '加载中...' : 
+                    (zodiacFate?.advice || '主动邀请对方参加有趣的活动')
+                  }
+                </Text>
+              </View>
             </View>
           </View>
+
+ 
         </View>
-
-        {/* 运势类型 */}
-        <View style={styles.categorySection}>
-          <Text style={styles.sectionTitle}>💫 运势分类</Text>
-          <View style={styles.categoryList}>
-            <AnimatedTouchable style={styles.categoryItem} animationType="scale" scaleValue={0.98}>
-              <Text style={styles.categoryIcon}>💕</Text>
-              <View style={styles.categoryInfo}>
-                <Text style={styles.categoryTitle}>爱情运势</Text>
-                <Text style={styles.categoryDesc}>探索感情的奥秘</Text>
-              </View>
-              <Text style={styles.categoryArrow}>→</Text>
-            </AnimatedTouchable>
-
-            <AnimatedTouchable style={styles.categoryItem} animationType="scale" scaleValue={0.98}>
-              <Text style={styles.categoryIcon}>💰</Text>
-              <View style={styles.categoryInfo}>
-                <Text style={styles.categoryTitle}>财富运势</Text>
-                <Text style={styles.categoryDesc}>财运的起伏变化</Text>
-              </View>
-              <Text style={styles.categoryArrow}>→</Text>
-            </AnimatedTouchable>
-
-            <AnimatedTouchable style={styles.categoryItem} animationType="scale" scaleValue={0.98}>
-              <Text style={styles.categoryIcon}>🎯</Text>
-              <View style={styles.categoryInfo}>
-                <Text style={styles.categoryTitle}>事业运势</Text>
-                <Text style={styles.categoryDesc}>职场发展方向</Text>
-              </View>
-              <Text style={styles.categoryArrow}>→</Text>
-            </AnimatedTouchable>
-
-            <AnimatedTouchable style={styles.categoryItem} animationType="scale" scaleValue={0.98}>
-              <Text style={styles.categoryIcon}>🍀</Text>
-              <View style={styles.categoryInfo}>
-                <Text style={styles.categoryTitle}>健康运势</Text>
-                <Text style={styles.categoryDesc}>身心灵的平衡</Text>
-              </View>
-              <Text style={styles.categoryArrow}>→</Text>
-            </AnimatedTouchable>
-          </View>
-        </View>
-
-        {/* 最近记录 */}
-        <View style={styles.recentSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>📚 最近占卜</Text>
-            <AnimatedTouchable 
-              onPress={() => nav.navigate('HistoryTab')}
-              animationType="scale"
-              scaleValue={0.9}
-            >
-              <Text style={styles.moreBtn}>查看全部 →</Text>
-            </AnimatedTouchable>
-          </View>
-          
-          <View style={styles.recentList}>
-            <TouchableOpacity style={styles.recentItem}>
-              <Text style={styles.recentIcon}>🔮</Text>
-              <View style={styles.recentInfo}>
-                <Text style={styles.recentTitle}>爱情塔罗</Text>
-                <Text style={styles.recentTime}>今天 15:30</Text>
-              </View>
-              <Text style={styles.recentScore}>85分</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.recentItem}>
-              <Text style={styles.recentIcon}>⭐</Text>
-              <View style={styles.recentInfo}>
-                <Text style={styles.recentTitle}>星座运势</Text>
-                <Text style={styles.recentTime}>昨天 20:15</Text>
-              </View>
-              <Text style={styles.recentScore}>78分</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
     </View>
   )
 }
@@ -281,13 +393,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100, // 为TabBar留出空间
+    paddingBottom: 100,
   },
   content: {
     paddingBottom: 30
   },
-  
-  // 头部区域
   header: {
     backgroundColor: '#8B5CF6',
     paddingTop: 50,
@@ -308,9 +418,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 5,
   },
+  userLevelInfo: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
   subGreeting: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '600',
+    marginBottom: 2,
   },
   profileBtn: {
     width: 45,
@@ -324,8 +440,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#fff',
   },
+  profileAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+  },
 
-  // 今日运势
   dailySection: {
     paddingHorizontal: 20,
     marginTop: -15,
@@ -379,7 +501,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
-  fortuneAdvice: {
+  yunShi: {
     backgroundColor: '#f8f5ff',
     padding: 15,
     borderRadius: 12,
@@ -390,219 +512,183 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  detailButton: {
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  detailButtonText: {
+    fontSize: 14,
+    color: '#8B5CF6',
+    fontWeight: '600',
+  },
 
-  // 快速占卜
   quickSection: {
-    paddingHorizontal: 0,
     marginTop: 30,
+    paddingHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#6B46C1',
     marginBottom: 15,
-    paddingHorizontal: 15,
   },
   quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    paddingHorizontal: 10,
+    gap: 12,
   },
   quickCard: {
-    width: 160,
-    height: 160,
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 18,
-    alignItems: 'center',
+    padding: 15,
     marginBottom: 12,
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.1)',
-    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   quickIcon: {
-    fontSize: 32,
-    marginBottom: 10,
+    fontSize: 28,
+    marginRight: 15,
+    width: 35,
+    textAlign: 'center',
+  },
+  quickContent: {
+    flex: 1,
   },
   quickTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 5,
-    textAlign: 'center',
+    marginBottom: 2,
   },
   quickDesc: {
     fontSize: 12,
     color: '#8B5CF6',
-    textAlign: 'center',
     lineHeight: 16,
-    fontWeight: '500',
   },
 
-  // 每日一卡
-  cardSection: {
+  // 星座缘分区域
+  zodiacSection: {
     paddingHorizontal: 20,
     marginTop: 30,
   },
-  dailyCardContainer: {
+  zodiacCard: {
     backgroundColor: '#fff',
-    borderRadius: 15,
+    borderRadius: 20,
     padding: 20,
-    flexDirection: 'row',
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  tarotCardDisplay: {
-    width: 80,
-    height: 120,
-    backgroundColor: '#f8f5ff',
+  userZodiacContainer: {
+    backgroundColor: '#f0f4ff',
+    padding: 12,
     borderRadius: 12,
-    justifyContent: 'center',
+    marginBottom: 15,
     alignItems: 'center',
-    marginRight: 15,
-    borderWidth: 2,
-    borderColor: '#8B5CF6',
   },
-  cardSymbol: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  cardName: {
+  userZodiacLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    color: '#8B5CF6',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  userZodiacText: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#6B46C1',
   },
-  cardContent: {
-    flex: 1,
-  },
-  cardMeaning: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  detailBtn: {
-    alignSelf: 'flex-start',
-  },
-  detailBtnText: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '600',
-  },
-
-  // 运势分类
-  categorySection: {
-    paddingHorizontal: 20,
-    marginTop: 30,
-  },
-  categoryList: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    overflow: 'hidden',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  categoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  categoryIcon: {
-    fontSize: 24,
-    marginRight: 15,
-  },
-  categoryInfo: {
-    flex: 1,
-  },
-  categoryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 3,
-  },
-  categoryDesc: {
-    fontSize: 14,
-    color: '#666',
-  },
-  categoryArrow: {
-    fontSize: 16,
-    color: '#8B5CF6',
-    fontWeight: '600',
-  },
-
-  // 最近记录
-  recentSection: {
-    paddingHorizontal: 20,
-    marginTop: 30,
-  },
-  sectionHeader: {
+  zodiacHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,
   },
-  moreBtn: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '500',
-  },
-  recentList: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    overflow: 'hidden',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  recentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  recentIcon: {
-    fontSize: 24,
-    marginRight: 15,
-  },
-  recentInfo: {
+  targetZodiacContainer: {
     flex: 1,
   },
-  recentTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 3,
-  },
-  recentTime: {
-    fontSize: 14,
+  zodiacLabel: {
+    fontSize: 12,
     color: '#666',
+    fontWeight: '500',
+    marginBottom: 4,
   },
-  recentScore: {
+  zodiacTarget: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#6B46C1',
+  },
+  fateTypeContainer: {
+    alignItems: 'flex-end',
+  },
+  fateType: {
+    fontSize: 14,
+    color: '#8B5CF6',
+    fontWeight: '600',
+    backgroundColor: '#f8f5ff',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  compatibilityScore: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#FF6B9D',
+  },
+  fateDescription: {
+    backgroundColor: '#f8f5ff',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+  },
+  fateDescText: {
+    fontSize: 15,
+    color: '#6B46C1',
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  fateAdvice: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 15,
+  },
+  adviceLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  adviceText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+  },
+  
+  // 占卜次数限制相关样式
+  disabledCard: {
+    opacity: 0.5,
+    backgroundColor: '#f5f5f5',
+  },
+  disabledText: {
+    color: '#999',
+  },
+  vipBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  vipText: {
+    fontSize: 10,
+    color: '#000',
+    fontWeight: '600',
   },
 })

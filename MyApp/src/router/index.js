@@ -10,11 +10,14 @@ import Login from '../pages/Login';
 import Home from '../pages/Home';
 import My from '../pages/My';
 import TarotReading from '../pages/TarotReading';
-import Zodiac from '../pages/Zodiac';
 import DivinationHistory from '../pages/DivinationHistory';
-import MoonPhase from '../pages/MoonPhase';
-import Settings from '../pages/Settings';
-import Zhanbu from '../pages/Zhan';
+import DivinationDetail from '../pages/DivinationDetail';
+
+import JinRiYunShi from '../pages/jinRiYunShi';
+import QianDao from '../pages/QianDao';
+import Membership from '../pages/Membership';
+import EditProfile from '../pages/EditProfile';
+import ChangePassword from '../pages/ChangePassword';
 
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,8 +31,7 @@ const LoadingScreen = () => (
   </View>
 );
 
-// 占卜功能页面
-const DivinationScreen = () => <Zhanbu />;
+
 
 // 主Tab导航器
 const TabNavigator = () => {
@@ -46,9 +48,9 @@ const TabNavigator = () => {
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
-          height: 80,
+          height: 85,
           paddingBottom: 20,
-          paddingTop: 10,
+          paddingTop: 8,
           position: 'absolute',
           bottom: 0,
           left: 0,
@@ -57,9 +59,10 @@ const TabNavigator = () => {
         tabBarActiveTintColor: '#8B5CF6',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
-          marginTop: 4,
+          marginTop: 2,
+          textAlign: 'center',
         },
         tabBarIconStyle: {
           marginBottom: 0,
@@ -78,26 +81,21 @@ const TabNavigator = () => {
           ),
         }}
       />
+
       <Tab.Screen 
         name="DivinationTab" 
-        component={DivinationScreen}
+        component={TarotReading}
         options={{
-          tabBarLabel: '占卜',
+          tabBarLabel: '塔罗占卜',
+          tabBarLabelStyle: {
+            fontSize: 9,
+            fontWeight: '600',
+            marginTop: 1,
+            textAlign: 'center',
+          },
           tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 24 : 22, color }}>
+            <Text style={{ fontSize: focused ? 22 : 20, color }}>
               {focused ? '🔮' : '🔷'}
-            </Text>
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="ZodiacTab" 
-        component={Zodiac}
-        options={{
-          tabBarLabel: '运势',
-          tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 24 : 22, color }}>
-              {focused ? '⭐' : '✨'}
             </Text>
           ),
         }}
@@ -136,8 +134,12 @@ const AppNavigator = () => {
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="Main" component={TabNavigator} />
       <RootStack.Screen name="TarotReading" component={TarotReading} />
-      <RootStack.Screen name="MoonPhase" component={MoonPhase} />
-      <RootStack.Screen name="Settings" component={Settings} />
+      <RootStack.Screen name="DivinationDetail" component={DivinationDetail} />
+      <RootStack.Screen name="Membership" component={Membership} />
+      <RootStack.Screen name="JinRiYunShi" component={JinRiYunShi} />
+      <RootStack.Screen name="QianDao" component={QianDao} />
+      <RootStack.Screen name="EditProfile" component={EditProfile} />
+      <RootStack.Screen name="ChangePassword" component={ChangePassword} />
     </RootStack.Navigator>
   );
 };

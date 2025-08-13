@@ -3,24 +3,31 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "init-data": "node scripts/initData.js",
+    "seed-fortune": "node scripts/seedFortune.js",
+    "test-level": "node scripts/testLevelSystem.js",
+    "init-78-cards": "node scripts/init78TarotCards.js",
+    "init-156-interpretations": "node scripts/init156Interpretations.js",
+    "generate-test-history": "node scripts/generateTestHistory.js",
+    "init-zodiac-data": "node scripts/initZodiacData.js",
+    "test-weekly-match": "node scripts/testWeeklyMatch.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@alicloud/pop-core": "^1.8.0",
-    "alipay-sdk": "^4.14.0",
     "axios": "^1.10.0",
+    "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "faker": "^5.5.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.1"
+    "mongoose": "^8.16.1",
+    "multiparty": "^4.2.3"
   }
 }
