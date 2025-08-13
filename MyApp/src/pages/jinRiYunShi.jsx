@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { commonStyles, COLORS } from '../styles/commonStyles';
 
 export default function JinRiYunShi() {
   const nav = useNavigation();

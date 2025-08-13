@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'rea
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { getDailyFortuneApi, getDailyZodiacFateApi, getDailyDivinationStatusApi } from '../request/auth'
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles'
 
 
 export default function Home() {
@@ -42,82 +43,67 @@ export default function Home() {
   const getUser = async () => {
     try {
       const userObj = await AsyncStorage.getItem('user')
-
-      if (userObj) {
-        const users = JSON.parse(userObj)
-        setUser(users)
-
-        if (users && users._id) {
-          // 从服务端获取最新的每日运势数据
-          const res = await getDailyFortuneApi(users._id);
-          if (res.success && res.data.data.dailyFortune) {
-            const fortuneData = res.data.data.dailyFortune;
-            const userData = res.data.data;
-
-            // 更新运势状态
-            setColor(fortuneData.luckyColor)
-            setNum(fortuneData.luckyNumber)
-            setZhishu(fortuneData.fortuneScore)
-            setYunShi(fortuneData.yunShi)
-            setColorDesc(fortuneData.luckyColorDesc)
-            setNumDesc(fortuneData.luckyNumberDesc)
-
-            // 获取星座缘分数据
-            const zodiacRes = await getDailyZodiacFateApi(users._id);
-            let zodiacData = null;
-            if (zodiacRes.success) {
-              zodiacData = zodiacRes.data.data;
-              setZodiacFate(zodiacData);
-            }
-
-            // 获取占卜次数状态
-            const divinationRes = await getDailyDivinationStatusApi(users._id);
-            if (divinationRes.success) {
-              setDivinationStatus(divinationRes.data.data);
-            }
-
-            // 更新用户信息
-            const updatedUser = {
-              ...users,
-              dailyFortune: fortuneData,
-              level: userData.level,
-              levelTitle: userData.levelTitle,
-              exp: userData.exp,
-              username: userData.username,
-              imgs: userData.imgs
-            };
-            setUser(updatedUser);
-
-            // 同步到本地存储
-            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-
-            setIsLoading(false)
-            setErr(false)
-          } else {
-            // 如果获取服务端数据失败，使用本地数据作为备用
-            if (users.dailyFortune) {
-              setColor(users.dailyFortune.luckyColor)
-              setNum(users.dailyFortune.luckyNumber)
-              setZhishu(users.dailyFortune.fortuneScore)
-              setYunShi(users.dailyFortune.yunShi)
-              setColorDesc(users.dailyFortune.luckyColorDesc)
-              setNumDesc(users.dailyFortune.luckyNumberDesc)
-              setIsLoading(false)
-              setErr(false)
-            } else {
-              setErr(true)
-              setIsLoading(false)
-            }
-          }
-        } else {
-          setErr(true)
-          setIsLoading(false)
-        }
-      } else {
+      if (!userObj) {
         setErr(true)
         setIsLoading(false)
+        return
       }
+
+      const users = JSON.parse(userObj)
+      setUser(users)
+
+      if (!users?._id) {
+        setErr(true)
+        setIsLoading(false)
+        return
+      }
+
+      // 并行获取所有数据
+      const [fortuneRes, zodiacRes, divinationRes] = await Promise.all([
+        getDailyFortuneApi(users._id),
+        getDailyZodiacFateApi(users._id),
+        getDailyDivinationStatusApi(users._id)
+      ]);
+
+      // 处理运势数据
+      if (fortuneRes.success && fortuneRes.data.data.dailyFortune) {
+        const fortuneData = fortuneRes.data.data.dailyFortune;
+        setColor(fortuneData.luckyColor)
+        setNum(fortuneData.luckyNumber)
+        setZhishu(fortuneData.fortuneScore)
+        setYunShi(fortuneData.yunShi)
+        setColorDesc(fortuneData.luckyColorDesc)
+        setNumDesc(fortuneData.luckyNumberDesc)
+
+        // 更新用户信息
+        const updatedUser = { ...users, ...fortuneRes.data.data };
+        setUser(updatedUser);
+        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      } else if (users.dailyFortune) {
+        // 使用本地数据
+        const fortune = users.dailyFortune;
+        setColor(fortune.luckyColor)
+        setNum(fortune.luckyNumber)
+        setZhishu(fortune.fortuneScore)
+        setYunShi(fortune.yunShi)
+        setColorDesc(fortune.luckyColorDesc)
+        setNumDesc(fortune.luckyNumberDesc)
+      }
+
+      // 处理星座缘分数据
+      if (zodiacRes.success) {
+        setZodiacFate(zodiacRes.data.data);
+      }
+
+      // 处理占卜次数状态
+      if (divinationRes.success) {
+        setDivinationStatus(divinationRes.data.data);
+      }
+
+      setIsLoading(false)
+      setErr(false)
     } catch (error) {
+      console.log('getUser error:', error)
       setErr(true)
       setIsLoading(false)
     }
@@ -161,21 +147,21 @@ export default function Home() {
           console.log('刷新状态失败:', error);
         }
       };
-      
+
       refreshStatus();
     }, [])
   )
 
   return (
-    <View style={styles.container}>
+    <View style={commonStyles.container}>
       {/* 主滚动容器 */}
       <ScrollView
-        style={styles.scrollView}
+        style={commonStyles.scrollView}
         showsVerticalScrollIndicator={false} // 隐藏滚动条
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={commonStyles.scrollContent}
       >
         <View style={styles.content}>
-          <View style={styles.header}>
+          <View style={[commonStyles.header, commonStyles.headerRow, { borderBottomRightRadius: 30 }]}>
             <View style={styles.greetingSection}>
               <Text style={styles.greeting}>✨ 你好，{user?.username || '神秘占卜师'}</Text>
               <View style={styles.userLevelInfo}>
@@ -189,7 +175,7 @@ export default function Home() {
               onPress={() => nav.navigate('MyTab')}
             >
               {user?.imgs ? (
-                <Image source={{ uri: user.imgs }} style={styles.profileAvatar} />
+                <Image source={{ uri: user.imgs }} style={commonStyles.smallAvatar} />
               ) : (
                 <Text style={styles.avatarText}>✨</Text>
               )}
@@ -198,7 +184,7 @@ export default function Home() {
 
           {/* ==================== 今日运势卡片区域 ==================== */}
           <View style={styles.dailySection}>
-            <View style={styles.dailyCard}>
+            <View style={commonStyles.card}>
               {/* 运势卡片头部 */}
               <View style={styles.dailyHeader}>
                 <Text style={styles.dailyTitle}>🌟 今日运势</Text>
@@ -306,9 +292,9 @@ export default function Home() {
                     styles.quickDesc,
                     !divinationStatus.canDivine && styles.disabledText
                   ]}>
-                    {divinationStatus.vipType === '季会员' 
+                    {divinationStatus.vipType === '季会员'
                       ? `探索内心的声音 (无限次数)`
-                      : divinationStatus.canDivine 
+                      : divinationStatus.canDivine
                         ? `探索内心的声音 (${divinationStatus.currentCount}/${divinationStatus.maxCount})`
                         : `今日次数已用完 (${divinationStatus.currentCount}/${divinationStatus.maxCount})`
                     }
@@ -321,9 +307,7 @@ export default function Home() {
                   </View>
                 )}
               </TouchableOpacity>
-
-
-                        </View>
+            </View>
           </View>
 
           {/* ==================== 今日星座缘分区域 ==================== */}
@@ -359,7 +343,7 @@ export default function Home() {
               {/* 缘分描述 */}
               <View style={styles.fateDescription}>
                 <Text style={styles.fateDescText}>
-                  {isLoading ? '正在为你寻找今日的星座缘分...' : 
+                  {isLoading ? '正在为你寻找今日的星座缘分...' :
                     (zodiacFate?.fateDescription || '今天与双鱼座的人能建立深厚友谊，你们会发现许多共同话题')
                   }
                 </Text>
@@ -369,7 +353,7 @@ export default function Home() {
               <View style={styles.fateAdvice}>
                 <Text style={styles.adviceLabel}>💡 相处建议</Text>
                 <Text style={styles.adviceText}>
-                  {isLoading ? '加载中...' : 
+                  {isLoading ? '加载中...' :
                     (zodiacFate?.advice || '主动邀请对方参加有趣的活动')
                   }
                 </Text>
@@ -377,7 +361,7 @@ export default function Home() {
             </View>
           </View>
 
- 
+
         </View>
       </ScrollView>
     </View>
@@ -385,29 +369,8 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f5ff",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
   content: {
     paddingBottom: 30
-  },
-  header: {
-    backgroundColor: '#8B5CF6',
-    paddingTop: 50,
-    paddingBottom: 25,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   greetingSection: {
     flex: 1,
@@ -415,52 +378,27 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: COLORS.white,
     marginBottom: 5,
-  },
-  userLevelInfo: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
   },
   subGreeting: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '600',
-    marginBottom: 2,
   },
   profileBtn: {
+    ...commonStyles.roundButton,
     width: 45,
     height: 45,
     borderRadius: 22.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   avatarText: {
     fontSize: 20,
-    color: '#fff',
+    color: COLORS.white,
   },
-  profileAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-  },
-
   dailySection: {
-    paddingHorizontal: 20,
+    ...commonStyles.paddingHorizontal,
     marginTop: -15,
-  },
-  dailyCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
   },
   dailyHeader: {
     flexDirection: 'row',
@@ -668,7 +606,7 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
-  
+
   // 占卜次数限制相关样式
   disabledCard: {
     opacity: 0.5,

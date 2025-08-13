@@ -6,6 +6,34 @@ const fs = require('fs');
 const User = require('../models/User.js');
 const Fortune = require('../models/Yunshi.js');
 
+// 常量定义
+const FORTUNE_CONSTANTS = {
+    colors: ['红色', '金色', '绿色', '紫色', '蓝色', '黄色', '白色', '粉色'],
+    numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    colorDescriptions: {
+        '红色': '象征着好运、财富和激情，特别在中国文化中非常重要。',
+        '金色': '代表财富、成功和繁荣，常与好运挂钩。',
+        '绿色': '在西方文化中代表幸运和生长，常与自然、平衡相关联。',
+        '紫色': '被认为是神秘、高贵的颜色，象征灵性和智慧。',
+        '蓝色': '象征着宁静和安定，常与情感的和谐和平衡相关。',
+        '黄色': '代表阳光、幸福和活力，常见于西方的幸运色。',
+        '白色': '纯洁、新开始，常与新的机会和好运联系在一起。',
+        '粉色': '通常与爱和幸福有关，能够带来积极的情感。'
+    },
+    numberDescriptions: {
+        1: '代表新开始、独立和领导力。是"开端"和"创造力"的象征。',
+        2: '代表和谐、合作和双重性。它也与平衡和关系密切相关。',
+        3: '象征着幸运、创造力和社交。被认为是最有创造力和幸运的数字之一。',
+        4: '代表稳定性、基础和努力。它常与脚踏实地的工作和耐力相关。',
+        5: '象征自由、冒险和变化。这个数字与探索和寻求新机会相关。',
+        6: '代表家庭、爱和责任。它与温暖和关爱有关，是平衡与照顾的象征。',
+        7: '被认为是最幸运的数字之一，代表智慧、神秘和完美。它与灵性和深度探索相关。',
+        8: '象征财富、权力和成功。它与物质和实际成果紧密相连。',
+        9: '代表完成、仁慈和人道主义。它也与理想主义和全局观相关。',
+        10: '通常象征着完美和圆满。它代表的是终结和新阶段的开始，常带有积极向上的意义。'
+    }
+};
+
 // 生成每日运势的函数
 const generateDailyFortune = async (userId, userData) => {
     try {
@@ -20,19 +48,13 @@ const generateDailyFortune = async (userId, userData) => {
             
             // 如果今天已经生成过运势，则不重新生成
             if (todayStart.getTime() === lastUpdatedStart.getTime()) {
-                // console.log('今日运势已生成，跳过生成');
                 return;
             }
         }
         
         // 生成随机幸运色和幸运数字
-        const colors = ['红色', '金色', '绿色', '紫色', '蓝色', '黄色', '白色', '粉色'];
-        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        const randomNumber = numbers[Math.floor(Math.random() * numbers.length)];
-        
-        // console.log(`为用户 ${userId} 生成运势: ${randomColor} + ${randomNumber}`);
+        const randomColor = FORTUNE_CONSTANTS.colors[Math.floor(Math.random() * FORTUNE_CONSTANTS.colors.length)];
+        const randomNumber = FORTUNE_CONSTANTS.numbers[Math.floor(Math.random() * FORTUNE_CONSTANTS.numbers.length)];
         
         // 从Fortune集合中查找对应的运势数据
         const fortuneData = await Fortune.findOne({
@@ -41,37 +63,12 @@ const generateDailyFortune = async (userId, userData) => {
         });
         
         if (fortuneData) {
-            // 获取颜色和数字的描述
-            const colorDescriptions = {
-                '红色': '象征着好运、财富和激情，特别在中国文化中非常重要。',
-                '金色': '代表财富、成功和繁荣，常与好运挂钩。',
-                '绿色': '在西方文化中代表幸运和生长，常与自然、平衡相关联。',
-                '紫色': '被认为是神秘、高贵的颜色，象征灵性和智慧。',
-                '蓝色': '象征着宁静和安定，常与情感的和谐和平衡相关。',
-                '黄色': '代表阳光、幸福和活力，常见于西方的幸运色。',
-                '白色': '纯洁、新开始，常与新的机会和好运联系在一起。',
-                '粉色': '通常与爱和幸福有关，能够带来积极的情感。'
-            };
-            
-            const numberDescriptions = {
-                1: '代表新开始、独立和领导力。是"开端"和"创造力"的象征。',
-                2: '代表和谐、合作和双重性。它也与平衡和关系密切相关。',
-                3: '象征着幸运、创造力和社交。被认为是最有创造力和幸运的数字之一。',
-                4: '代表稳定性、基础和努力。它常与脚踏实地的工作和耐力相关。',
-                5: '象征自由、冒险和变化。这个数字与探索和寻求新机会相关。',
-                6: '代表家庭、爱和责任。它与温暖和关爱有关，是平衡与照顾的象征。',
-                7: '被认为是最幸运的数字之一，代表智慧、神秘和完美。它与灵性和深度探索相关。',
-                8: '象征财富、权力和成功。它与物质和实际成果紧密相连。',
-                9: '代表完成、仁慈和人道主义。它也与理想主义和全局观相关。',
-                10: '通常象征着完美和圆满。它代表的是终结和新阶段的开始，常带有积极向上的意义。'
-            };
-            
             // 更新用户的每日运势数据
             const updateData = {
                 'dailyFortune.luckyColor': randomColor,
-                'dailyFortune.luckyColorDesc': colorDescriptions[randomColor] || '带来好运的颜色',
+                'dailyFortune.luckyColorDesc': FORTUNE_CONSTANTS.colorDescriptions[randomColor] || '带来好运的颜色',
                 'dailyFortune.luckyNumber': randomNumber,
-                'dailyFortune.luckyNumberDesc': numberDescriptions[randomNumber] || '幸运的数字',
+                'dailyFortune.luckyNumberDesc': FORTUNE_CONSTANTS.numberDescriptions[randomNumber] || '幸运的数字',
                 'dailyFortune.fortuneScore': fortuneData.fortuneScore,
                 'dailyFortune.yunShi': fortuneData.advice,
                 'dailyFortune.lastUpdated': new Date()
@@ -82,17 +79,13 @@ const generateDailyFortune = async (userId, userData) => {
             // 更新userData对象，确保返回给前端的数据是最新的
             userData.dailyFortune = {
                 luckyColor: randomColor,
-                luckyColorDesc: colorDescriptions[randomColor] || '带来好运的颜色',
+                luckyColorDesc: FORTUNE_CONSTANTS.colorDescriptions[randomColor] || '带来好运的颜色',
                 luckyNumber: randomNumber,
-                luckyNumberDesc: numberDescriptions[randomNumber] || '幸运的数字',
+                luckyNumberDesc: FORTUNE_CONSTANTS.numberDescriptions[randomNumber] || '幸运的数字',
                 fortuneScore: fortuneData.fortuneScore,
                 yunShi: fortuneData.advice,
                 lastUpdated: new Date()
             };
-            
-            // console.log(`✅ 成功为用户 ${userId} 生成今日运势: ${randomColor} + ${randomNumber} = ${fortuneData.fortuneScore}分`);
-        } else {
-            // console.log(`⚠️ 未找到对应的运势数据: ${randomColor} + ${randomNumber}`);
         }
         
     } catch (error) {
@@ -270,38 +263,11 @@ router.post('/daily-sign', async (req, res) => {
             }
         }
         
-        // 计算连续签到天数
-        let newConsecutiveDays = 1;
-        const lastSignDate = user.lastSignDate ? new Date(user.lastSignDate) : null;
-        
-        if (lastSignDate) {
-            const lastSignStart = new Date(lastSignDate.getFullYear(), lastSignDate.getMonth(), lastSignDate.getDate());
-            const yesterday = new Date(todayStart);
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            console.log('DEBUG - 当前连续签到天数:', user.lianXuQianDao);
-            console.log('DEBUG - 最后签到日期:', lastSignStart.toISOString());
-            console.log('DEBUG - 昨天日期:', yesterday.toISOString());
-            console.log('DEBUG - 今天日期:', todayStart.toISOString());
-            
-            // 如果最后签到日期是昨天，连续天数+1
-            if (lastSignStart.getTime() === yesterday.getTime()) {
-                newConsecutiveDays = (user.lianXuQianDao || 0) + 1;
-                console.log('DEBUG - 连续签到，新天数:', newConsecutiveDays);
-            } else {
-                console.log('DEBUG - 不是连续签到，重置为1');
-            }
-        } else {
-            console.log('DEBUG - 首次签到');
-        }
-        
         // 累计签到天数+1
         const newTotalSignDays = (user.leiJiQianDao || 0) + 1;
         
-        // 计算经验奖励（基于连续签到天数）
-        const baseExp = 10;
-        const bonusExp = Math.min(newConsecutiveDays * 5, 40); // 连续签到奖励更丰富
-        const totalExp = baseExp + bonusExp;
+        // 计算经验奖励（固定奖励）
+        const totalExp = 20; // 每日固定20经验值
         
         // 使用新的等级系统计算升级
         const { addExperience } = require('../utils/levelSystem');
@@ -310,7 +276,6 @@ router.post('/daily-sign', async (req, res) => {
         // 更新用户数据
         const updateData = {
             isQianDao: true,
-            lianXuQianDao: newConsecutiveDays,
             leiJiQianDao: newTotalSignDays,
             lastSignDate: todayStart,
             exp: expResult.newExp
@@ -325,7 +290,6 @@ router.post('/daily-sign', async (req, res) => {
         return res.status(200).json({
             code: 200,
             data: {
-                consecutiveDays: newConsecutiveDays,
                 totalSignDays: newTotalSignDays,
                 expGained: totalExp,
                 newLevel: expResult.newLevel,
@@ -335,7 +299,7 @@ router.post('/daily-sign', async (req, res) => {
                 levelTitle: updatedUser.levelTitle,
                 levelInfo: updatedUser.levelInfo
             },
-            msg: `签到成功！连续签到${newConsecutiveDays}天，获得${totalExp}经验值${expResult.levelUp ? `，恭喜从${expResult.oldLevel}级升到${expResult.newLevel}级！` : ''}`
+            msg: `签到成功！累计签到${newTotalSignDays}天，获得${totalExp}经验值${expResult.levelUp ? `，恭喜从${expResult.oldLevel}级升到${expResult.newLevel}级！` : ''}`
         });
         
     } catch (error) {
@@ -381,7 +345,6 @@ router.post('/check-sign-status', async (req, res) => {
             code: 200,
             data: {
                 isQianDao: finalUserData.isQianDao,
-                lianXuQianDao: finalUserData.lianXuQianDao,
                 leiJiQianDao: finalUserData.leiJiQianDao,
                 level: finalUserData.level,
                 levelTitle: finalUserData.levelTitle,

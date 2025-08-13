@@ -3,18 +3,14 @@ import { Snackbar } from 'react-native-paper';
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 import { loginApi } from '../request/auth'
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f5ff',
-  },
   header: {
     paddingTop: 60,
     paddingBottom: 30,
-    paddingHorizontal: 20,
+    ...commonStyles.paddingHorizontal,
   },
   title: {
     fontSize: 28,
@@ -24,10 +20,10 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#8B5CF6',
+    color: COLORS.primary,
   },
   formContainer: {
-    paddingHorizontal: 20,
+    ...commonStyles.paddingHorizontal,
   },
   inputContainer: {
     marginBottom: 20,
@@ -138,8 +134,8 @@ export default function Login({ onLoginSuccess }) {
     }
   }
 
-  return (
-    <SafeAreaView style={styles.container}>
+      return (
+        <SafeAreaView style={commonStyles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8f5ff" />
 
       <View style={styles.header}>

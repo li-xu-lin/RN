@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking } 
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles'
 import { createPaymentOrderApi, queryPaymentStatusApi } from '../request/auth'
 
 

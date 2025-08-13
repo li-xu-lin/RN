@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 import { dailySignApi, checkSignStatusApi, getUserInfoApi } from '../request/auth';
 
 export default function QianDao() {
@@ -18,7 +18,7 @@ export default function QianDao() {
 
 
     // 每日签到固定奖励
-    const dailyReward = { reward: '经验 +15', icon: '⭐', color: '#FFD700' };
+    const dailyReward = { reward: '经验 +20', icon: '⭐', color: '#FFD700' };
 
     // 获取用户信息和签到状态（从服务端获取最新状态）
     const getUser = async () => {    

@@ -12,6 +12,7 @@ import {
   Image
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 import { drawTarotCardApi } from '../request/auth';
 
 
@@ -359,8 +360,8 @@ const TarotReading = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <View style={commonStyles.container}>
+      <ScrollView style={commonStyles.scrollView} showsVerticalScrollIndicator={false}>
         {renderHeader()}
         
         {!showResult && (
@@ -381,15 +382,8 @@ const TarotReading = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FF',
-  },
-  scrollView: {
-    flex: 1,
-  },
   header: {
-    padding: 20,
+    ...commonStyles.padding,
     paddingTop: 60,
     backgroundColor: 'linear-gradient(135deg, #8B5CF6, #FF6B9D)',
     position: 'relative',
@@ -399,20 +393,19 @@ const styles = StyleSheet.create({
     top: 55,
     left: 20,
     zIndex: 999,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     width: 36,
     height: 36,
     borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#8B5CF6',
+    ...commonStyles.centerContainer,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
   backButtonText: {
-    color: '#8B5CF6',
+    color: COLORS.primary,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',

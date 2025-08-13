@@ -56,10 +56,6 @@ const userSchema = new mongoose.Schema({
         district: String, // 区县
         fullAddress: String // 详细地址
     },
-    lianXuQianDao: {
-        type: Number,
-        default: 0
-    },
     leiJiQianDao: {
         type: Number,
         default: 0

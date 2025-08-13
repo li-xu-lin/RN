@@ -21,8 +21,7 @@ const LEVEL_CONFIG = {
     
     // 经验值获取方式
     expSources: {
-        dailySign: 10,          // 每日签到
-        consecutiveSign: 5,     // 连续签到额外奖励（每天递增）
+        dailySign: 20,          // 每日签到（固定奖励）
         tarotReading: 5,        // 塔罗牌占卜
         fortuneTelling: 3,      // 运势查看
         profileComplete: 20,    // 完善个人资料

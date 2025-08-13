@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, ActivityIndicator } from 'react-native';
+import { Text, View, ActivityIndicator, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -30,8 +30,6 @@ const LoadingScreen = () => (
     <Text style={{ marginTop: 10, color: '#8B5CF6', fontSize: 16 }}>加载中...</Text>
   </View>
 );
-
-
 
 // 主Tab导航器
 const TabNavigator = () => {
@@ -154,6 +152,23 @@ const Router = () => {
 
   useEffect(() => {
     checkToken();
+    
+    // 监听应用状态变化，当应用重新激活时检查登录状态
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === 'active') {
+        checkToken();
+      }
+    };
+    
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    // 添加定时检查，用于快速响应退出登录
+    const interval = setInterval(checkToken, 2000);
+    
+    return () => {
+      subscription?.remove();
+      clearInterval(interval);
+    };
   }, []);
 
   if (isLogin === null) return <LoadingScreen />;
@@ -174,4 +189,4 @@ const Router = () => {
   );
 };
 
-export default Router;
+export default Router; 
