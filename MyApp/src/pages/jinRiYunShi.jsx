@@ -2,7 +2,6 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import React, { useEffect, useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { commonStyles, COLORS } from '../styles/commonStyles';
 
 export default function JinRiYunShi() {
   const nav = useNavigation();
@@ -42,35 +41,44 @@ export default function JinRiYunShi() {
     getUserData();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>加载中...</Text>
-        </View>
+  /**
+   * 渲染加载状态
+   * @returns {JSX.Element} 加载状态组件
+   */
+  const renderLoadingState = () => (
+    <View style={styles.container}>
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>加载中...</Text>
       </View>
-    );
-  }
+    </View>
+  );
 
-  if (!fortuneData) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>运势数据加载失败</Text>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => nav.goBack()}
-          >
-            <Text style={styles.backButtonText}>返回首页</Text>
-          </TouchableOpacity>
-        </View>
+  /**
+   * 渲染错误状态
+   * @returns {JSX.Element} 错误状态组件
+   */
+  const renderErrorState = () => (
+    <View style={styles.container}>
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>运势数据加载失败</Text>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => nav.goBack()}
+        >
+          <Text style={styles.backButtonText}>返回首页</Text>
+        </TouchableOpacity>
       </View>
-    );
-  }
+    </View>
+  );
 
-  const { dailyColor, dailyNumber, fortuneScore, fortuneAdvice, dailyColorDesc, dailyNumberDesc } = fortuneData;
-
-  return (
+  /**
+   * 渲染主要内容
+   * @returns {JSX.Element} 主要内容组件
+   */
+  const renderMainContent = () => {
+    const { dailyColor, dailyNumber, fortuneScore, fortuneAdvice, dailyColorDesc, dailyNumberDesc } = fortuneData;
+    
+    return (
     <View style={styles.container}>
       <ScrollView 
         style={styles.scrollView}
@@ -150,7 +158,23 @@ export default function JinRiYunShi() {
         </View>
       </ScrollView>
     </View>
-  );
+    );
+  };
+
+  /**
+   * 统一的组件渲染逻辑
+   * 根据不同状态返回对应的界面
+   */
+  return (() => {
+    // 加载中状态
+    if (loading) return renderLoadingState();
+    
+    // 数据为空状态
+    if (!fortuneData) return renderErrorState();
+    
+    // 正常数据状态
+    return renderMainContent();
+  })();
 }
 
 const styles = StyleSheet.create({

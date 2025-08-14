@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
-import { getDailyFortuneApi, getDailyZodiacFateApi, getDailyDivinationStatusApi } from '../request/auth'
-import { commonStyles, COLORS, SIZES } from '../styles/commonStyles'
+import { getYunShiApi, xingZuo, ZhanBuNums } from '../request/auth'
+import { commonStyles, COLORS } from '../styles/commonStyles'
 
 
 export default function Home() {
@@ -31,7 +31,7 @@ export default function Home() {
   // 刷新占卜次数状态的函数
   const refreshDivinationStatus = async (userId) => {
     try {
-      const divinationRes = await getDailyDivinationStatusApi(userId);
+              const divinationRes = await ZhanBuNums(userId);
       if (divinationRes.success) {
         setDivinationStatus(divinationRes.data.data);
       }
@@ -60,9 +60,9 @@ export default function Home() {
 
       // 并行获取所有数据
       const [fortuneRes, zodiacRes, divinationRes] = await Promise.all([
-        getDailyFortuneApi(users._id),
-        getDailyZodiacFateApi(users._id),
-        getDailyDivinationStatusApi(users._id)
+                    getYunShiApi(users._id),
+            xingZuo(users._id),
+            ZhanBuNums(users._id)
       ]);
 
       // 处理运势数据
@@ -152,7 +152,11 @@ export default function Home() {
     }, [])
   )
 
-  return (
+  /**
+   * 渲染主要内容
+   * @returns {JSX.Element} 主要内容组件
+   */
+  const renderMainContent = () => (
     <View style={commonStyles.container}>
       {/* 主滚动容器 */}
       <ScrollView
@@ -174,11 +178,7 @@ export default function Home() {
               style={styles.profileBtn}
               onPress={() => nav.navigate('MyTab')}
             >
-              {user?.imgs ? (
-                <Image source={{ uri: user.imgs }} style={commonStyles.smallAvatar} />
-              ) : (
-                <Text style={styles.avatarText}>✨</Text>
-              )}
+              <Text style={styles.avatarText}>✨</Text>
             </TouchableOpacity>
           </View>
 
@@ -279,7 +279,7 @@ export default function Home() {
                       };
                       setDivinationStatus(newStatus);
                     }
-                    nav.navigate('TarotReading', { spreadType: 'single', question: '我的今日指引' })
+                    nav.navigate('ZhanBu', { spreadType: 'single', question: '我的今日指引' })
                   } else {
                     alert(`${divinationStatus.vipType}用户每日最多可进行${divinationStatus.maxCount}次占卜，今日次数已用完！\n\n升级会员解锁更多次数~`)
                   }
@@ -365,7 +365,16 @@ export default function Home() {
         </View>
       </ScrollView>
     </View>
-  )
+  );
+
+  /**
+   * 统一的组件渲染逻辑
+   * 根据不同状态返回对应的界面
+   */
+  return (() => {
+    // 正常状态，显示主要内容
+    return renderMainContent();
+  })();
 }
 
 const styles = StyleSheet.create({

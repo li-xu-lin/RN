@@ -18,9 +18,6 @@ const userSchema = new mongoose.Schema({
     },
 
     pwd: String,
-
-    imgs: String,
-
     content: {
         type: String,
         maxlength: 200,

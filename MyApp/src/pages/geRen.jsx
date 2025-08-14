@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  Image,
-  Dimensions,
-  StatusBar
-} from 'react-native';
+import {View,Text,ScrollView,StyleSheet,TouchableOpacity,TextInput,Alert,Dimensions,StatusBar} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { updateUserProfileApi } from '../request/auth';
+import { UpuserApi } from '../request/auth';
 
-const { width } = Dimensions.get('window');
-
-const EditProfile = ({ navigation }) => {
+export default function geRen({ navigation }) {
+  // 用户信息
   const [user, setUser] = useState(null);
+  // 表单数据
   const [formData, setFormData] = useState({
     nickname: '',
     phone: '',
@@ -25,12 +14,15 @@ const EditProfile = ({ navigation }) => {
     gender: '',
     birthDate: ''
   });
+  // 加载状态
   const [loading, setLoading] = useState(false);
 
+  // 获取用户信息
   useEffect(() => {
     getUserInfo();
   }, []);
 
+  // 获取用户信息
   const getUserInfo = async () => {
     try {
       const userObj = await AsyncStorage.getItem('user');
@@ -42,7 +34,7 @@ const EditProfile = ({ navigation }) => {
         if (userData.birthDate) {
           const date = new Date(userData.birthDate);
           if (!isNaN(date.getTime())) {
-            formattedBirthDate = date.toISOString().split('T')[0]; // 转为 YYYY-MM-DD 格式
+            formattedBirthDate = date.toISOString().split('T')[0];
           }
         }
 
@@ -59,6 +51,7 @@ const EditProfile = ({ navigation }) => {
     }
   };
 
+  // 保存用户信息
   const handleSave = async () => {
     if (!formData.nickname.trim()) {
       Alert.alert('提示', '昵称不能为空');
@@ -72,7 +65,7 @@ const EditProfile = ({ navigation }) => {
 
     setLoading(true);
     try {
-      const result = await updateUserProfileApi(user._id, formData);
+      const result = await UpuserApi(user._id, formData);
       
       if (result.success) {
         // 更新本地存储的用户信息，映射到正确的字段名
@@ -100,114 +93,134 @@ const EditProfile = ({ navigation }) => {
     }
   };
 
-  const handleInputChange = (field, value) => {
+  // 处理输入变化
+  const inputFn = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>编辑个人资料</Text>
-      <TouchableOpacity 
-        style={styles.saveButton}
-        onPress={handleSave}
-        disabled={loading}
-      >
-        <Text style={[styles.saveButtonText, loading && styles.saveButtonDisabled]}>
-          {loading ? '保存中...' : '保存'}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderAvatarSection = () => (
-    <View style={styles.avatarSection}>
-      <View style={styles.avatarContainer}>
-        <Image
-          source={
-            user?.imgs 
-              ? { uri: user.imgs }
-              : require('../assets/ben1.png')
-          }
-          style={styles.avatar}
-        />
-        <TouchableOpacity style={styles.changeAvatarButton}>
-          <Text style={styles.changeAvatarText}>更换头像</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderFormField = (label, field, placeholder, multiline = false, keyboardType = 'default') => (
-    <View style={styles.formField}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput
-        style={[styles.fieldInput, multiline && styles.multilineInput]}
-        placeholder={placeholder}
-        placeholderTextColor="#999"
-        value={formData[field]}
-        onChangeText={(value) => handleInputChange(field, value)}
-        multiline={multiline}
-        numberOfLines={multiline ? 3 : 1}
-        keyboardType={keyboardType}
-      />
-    </View>
-  );
-
-  const renderGenderSelector = () => (
-    <View style={styles.formField}>
-      <Text style={styles.fieldLabel}>性别</Text>
-      <View style={styles.genderContainer}>
-        {['男', '女'].map((gender) => (
-          <TouchableOpacity
-            key={gender}
-            style={[
-              styles.genderOption,
-              formData.gender === gender && styles.genderOptionSelected
-            ]}
-            onPress={() => handleInputChange('gender', gender)}
-          >
-            <Text style={[
-              styles.genderOptionText,
-              formData.gender === gender && styles.genderOptionTextSelected
-            ]}>
-              {gender}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  return (
+  /**
+   * 渲染主要内容
+   * @returns {JSX.Element} 主要内容组件
+   */
+  const renderMainContent = () => (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      {renderHeader()}
+      
+      {/* 头部区域 */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>编辑个人资料</Text>
+        <TouchableOpacity 
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={loading}
+        >
+          <Text style={[styles.saveButtonText, loading && styles.saveButtonDisabled]}>
+            {loading ? '保存中...' : '保存'}
+          </Text>
+        </TouchableOpacity>
+      </View>
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {renderAvatarSection()}
-        
         <View style={styles.formContainer}>
-          {renderFormField('昵称', 'nickname', '请输入昵称')}
-          {renderFormField('手机号', 'phone', '请输入手机号', false, 'phone-pad')}
-          {renderGenderSelector()}
-          {renderFormField('生日', 'birthDate', '请输入生日，如：1995-01-01')}
-          {renderFormField('个人简介', 'bio', '介绍一下自己吧...', true)}
+          {/* 昵称字段 */}
+          <View style={styles.formField}>
+            <Text style={styles.fieldLabel}>昵称</Text>
+            <TextInput
+              style={styles.fieldInput}
+              placeholder="请输入昵称"
+              placeholderTextColor="#999"
+              value={formData.nickname}
+              onChangeText={(value) => inputFn('nickname', value)}
+            />
+          </View>
+
+          {/* 手机号字段 */}
+          <View style={styles.formField}>
+            <Text style={styles.fieldLabel}>手机号</Text>
+            <TextInput
+              style={styles.fieldInput}
+              placeholder="请输入手机号"
+              placeholderTextColor="#999"
+              value={formData.phone}
+              onChangeText={(value) => inputFn('phone', value)}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          {/* 性别选择器 */}
+          <View style={styles.formField}>
+            <Text style={styles.fieldLabel}>性别</Text>
+            <View style={styles.genderContainer}>
+              {['男', '女'].map((gender) => (
+                <TouchableOpacity
+                  key={gender}
+                  style={[
+                    styles.genderOption,
+                    formData.gender === gender && styles.genderOptionSelected
+                  ]}
+                  onPress={() => inputFn('gender', gender)}
+                >
+                  <Text style={[
+                    styles.genderOptionText,
+                    formData.gender === gender && styles.genderOptionTextSelected
+                  ]}>
+                    {gender}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* 生日字段 */}
+          <View style={styles.formField}>
+            <Text style={styles.fieldLabel}>生日</Text>
+            <TextInput
+              style={styles.fieldInput}
+              placeholder="请输入生日，如：1995-01-01"
+              placeholderTextColor="#999"
+              value={formData.birthDate}
+              onChangeText={(value) => inputFn('birthDate', value)}
+            />
+          </View>
+
+          {/* 个人简介字段 */}
+          <View style={styles.formField}>
+            <Text style={styles.fieldLabel}>个人简介</Text>
+            <TextInput
+              style={[styles.fieldInput, styles.multilineInput]}
+              placeholder="介绍一下自己吧..."
+              placeholderTextColor="#999"
+              value={formData.bio}
+              onChangeText={(value) => inputFn('bio', value)}
+              multiline={true}
+              numberOfLines={3}
+            />
+          </View>
         </View>
         
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </View>
   );
-};
+
+  /**
+   * 统一的组件渲染逻辑
+   * 根据不同状态返回对应的界面
+   */
+  return (() => {
+    // 正常状态，显示主要内容
+    return renderMainContent();
+  })();
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -259,32 +272,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    paddingVertical: 30,
-    backgroundColor: '#fff',
-    marginBottom: 20,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 15,
-  },
-  changeAvatarButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    backgroundColor: '#8B5CF6',
-    borderRadius: 20,
-  },
-  changeAvatarText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
   },
   formContainer: {
     backgroundColor: '#fff',
@@ -350,6 +337,4 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 50,
   },
-});
-
-export default EditProfile; 
+}); 

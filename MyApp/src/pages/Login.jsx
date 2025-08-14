@@ -134,8 +134,12 @@ export default function Login({ onLoginSuccess }) {
     }
   }
 
-      return (
-        <SafeAreaView style={commonStyles.container}>
+  /**
+   * 渲染主要内容
+   * @returns {JSX.Element} 主要内容组件
+   */
+  const renderMainContent = () => (
+    <SafeAreaView style={commonStyles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8f5ff" />
 
       <View style={styles.header}>
@@ -198,6 +202,15 @@ export default function Login({ onLoginSuccess }) {
         </Snackbar>
       </View>
     </SafeAreaView>
-  )
+  );
+
+  /**
+   * 统一的组件渲染逻辑
+   * 根据不同状态返回对应的界面
+   */
+  return (() => {
+    // 正常状态，显示主要内容
+    return renderMainContent();
+  })();
 }
 

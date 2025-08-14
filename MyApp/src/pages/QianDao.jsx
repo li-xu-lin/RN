@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
-import { dailySignApi, checkSignStatusApi, getUserInfoApi } from '../request/auth';
+import { QianDaoApi, getStatusApi, aloneUser } from '../request/auth';
 
 export default function QianDao() {
     const nav = useNavigation();
@@ -29,7 +29,7 @@ export default function QianDao() {
             
             if (users && users._id) {
                 // 从服务端获取最新的签到状态
-                const statusResult = await checkSignStatusApi(users._id);
+                const statusResult = await getStatusApi(users._id);
                 if (statusResult.success) {
                     const serverData = statusResult.data.data;
                     setTotalDay(serverData.leiJiQianDao)
@@ -77,7 +77,7 @@ export default function QianDao() {
                 return;
             }
             
-            const result = await dailySignApi(userData._id);
+            const result = await QianDaoApi(userData._id);
             
             if (result.success) {
                 // 立即使用签到返回的数据更新界面，确保实时响应
@@ -86,7 +86,7 @@ export default function QianDao() {
                 
                 // 然后重新获取最新的用户数据并更新本地存储
                 try {
-                    const userInfoResult = await getUserInfoApi(userData._id);
+                    const userInfoResult = await aloneUser(userData._id);
                     if (userInfoResult.success) {
                         const latestUserData = userInfoResult.data.data;
                         await AsyncStorage.setItem('user', JSON.stringify(latestUserData));
@@ -126,7 +126,11 @@ export default function QianDao() {
         getUser();
     }, []);
     
-    return (
+    /**
+     * 渲染主要内容
+     * @returns {JSX.Element} 主要内容组件
+     */
+    const renderMainContent = () => (
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity
@@ -219,6 +223,15 @@ export default function QianDao() {
             </ScrollView>
         </View>
     );
+
+    /**
+     * 统一的组件渲染逻辑
+     * 根据不同状态返回对应的界面
+     */
+    return (() => {
+        // 正常状态，显示主要内容
+        return renderMainContent();
+    })();
 }
 
 const styles = StyleSheet.create({

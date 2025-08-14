@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserInfoApi } from '../request/auth';
+import { aloneUser } from '../request/auth';
 import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 
 export default function My() {
@@ -60,7 +60,7 @@ export default function My() {
                 return;
             }
 
-            const result = await getUserInfoApi(userData._id);
+            const result = await aloneUser(userData._id);
             if (result.success) {
                 const latestUserData = result.data.data;
                 await AsyncStorage.setItem('user', JSON.stringify(latestUserData));
@@ -120,7 +120,11 @@ export default function My() {
         );
     }
 
-    return (
+    /**
+     * 渲染主要内容
+     * @returns {JSX.Element} 主要内容组件
+     */
+    const renderMainContent = () => (
         <View style={commonStyles.container}>
             <ScrollView
                 style={commonStyles.scrollView}
@@ -143,16 +147,9 @@ export default function My() {
                 <View style={styles.profileSection}>
                     <View style={commonStyles.card}>
                         <View style={styles.avatarSection}>
-                            {user?.imgs ? (
-                                <Image source={{ uri: user.imgs }} style={styles.avatar} />
-                            ) : (
-                                <View style={styles.defaultAvatar}>
-                                    <Text style={styles.avatarEmoji}>✨</Text>
-                                </View>
-                            )}
-                            <TouchableOpacity style={styles.editAvatarBtn}>
-                                <Text style={styles.editIcon}>📷</Text>
-                            </TouchableOpacity>
+                            <View style={styles.defaultAvatar}>
+                                <Text style={styles.avatarEmoji}>✨</Text>
+                            </View>
                         </View>
                         <View style={styles.userInfo}>
                             <Text style={styles.username}>{user?.username || '神秘占卜师'}</Text>
@@ -184,7 +181,7 @@ export default function My() {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.serviceItem}
-                            onPress={() => nav.navigate('Membership')}
+                            onPress={() => nav.navigate('VipShip')}
                         >
                             <Text style={styles.serviceIcon}>💎</Text>
                             <Text style={styles.serviceText}>会员中心</Text>
@@ -198,7 +195,7 @@ export default function My() {
                     <View style={styles.menuList}>
                         <TouchableOpacity
                             style={styles.menuItem}
-                            onPress={() => nav.navigate('EditProfile')}
+                            onPress={() => nav.navigate('geRen')}
                         >
                             <View style={styles.menuLeft}>
                                 <Text style={styles.menuIcon}>📝</Text>
@@ -208,7 +205,7 @@ export default function My() {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.menuItem}
-                            onPress={() => nav.navigate('ChangePassword')}
+                            onPress={() => nav.navigate('ChangePwd')}
                         >
                             <View style={styles.menuLeft}>
                                 <Text style={styles.menuIcon}>🔒</Text>
@@ -229,6 +226,15 @@ export default function My() {
             </ScrollView>
         </View>
     );
+
+    /**
+     * 统一的组件渲染逻辑
+     * 根据不同状态返回对应的界面
+     */
+    return (() => {
+        // 正常状态，显示主要内容
+        return renderMainContent();
+    })();
 };
 
 const styles = StyleSheet.create({
@@ -260,10 +266,6 @@ const styles = StyleSheet.create({
     avatarSection: {
         ...commonStyles.centerContainer,
         marginBottom: 20,
-        position: 'relative',
-    },
-    avatar: {
-        ...commonStyles.avatar,
     },
     defaultAvatar: {
         ...commonStyles.avatar,
@@ -272,20 +274,6 @@ const styles = StyleSheet.create({
     avatarEmoji: {
         fontSize: 32,
         color: '#8B5CF6',
-    },
-    editAvatarBtn: {
-        position: 'absolute',
-        bottom: 0,
-        right: '35%',
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: '#8B5CF6',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    editIcon: {
-        fontSize: 14,
     },
     userInfo: {
         alignItems: 'center',

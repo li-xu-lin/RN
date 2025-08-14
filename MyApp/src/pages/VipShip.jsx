@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { commonStyles, COLORS, SIZES } from '../styles/commonStyles'
-import { createPaymentApi, queryPaymentStatusApi } from '../request/auth'
+import { CreateZhiFu, queryZhiFu } from '../request/auth'
 
-export default function Membership() {
+export default function VipShip() {
     const nav = useNavigation()
     const [loading, setLoading] = useState(false)
     const [userInfo, setUserInfo] = useState(null)
@@ -97,7 +97,7 @@ export default function Membership() {
             const user = JSON.parse(userObj);
             
             // 创建支付订单
-            const paymentRes = await createPaymentApi(user._id, planType);
+            const paymentRes = await CreateZhiFu(user._id, planType);
             if (!paymentRes.success) {
                 Alert.alert('创建支付失败', paymentRes.data.msg || '请稍后重试');
                 return;
@@ -166,7 +166,7 @@ export default function Membership() {
         try {
             Alert.alert('🔍 查询中', '正在查询支付状态，请稍候...');
             
-            const result = await queryPaymentStatusApi(outTradeNo);
+            const result = await queryZhiFu(outTradeNo);
             
             if (result.success && result.data.data && result.data.data.status === 'paid') {
                 Alert.alert(
@@ -198,45 +198,6 @@ export default function Membership() {
         }
     };
 
-    // 调试函数：手动触发VIP状态更新
-    const debugUpdateVipStatus = async (planType) => {
-        try {
-            const userObj = await AsyncStorage.getItem('user');
-            if (!userObj) {
-                Alert.alert('错误', '未找到用户信息');
-                return;
-            }
-            
-            const user = JSON.parse(userObj);
-            
-            console.log('🔧 调试：开始手动更新VIP状态...', { userId: user._id, planType });
-            
-            const response = await fetch('http://192.168.100.199:3010/payment/debug-update-vip', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    userId: user._id,
-                    planType: planType
-                })
-            });
-            
-            const result = await response.json();
-            console.log('🔧 调试更新结果:', result);
-            
-            if (result.code === 200) {
-                Alert.alert('调试成功', `VIP状态已更新为：${planType}`);
-                // 刷新用户状态
-                checkUserMembershipStatus();
-            } else {
-                Alert.alert('调试失败', result.msg || '更新失败');
-            }
-        } catch (error) {
-            console.error('❌ 调试更新VIP状态失败:', error);
-            Alert.alert('调试失败', '网络错误: ' + error.message);
-        }
-    };
 
     const renderMembershipCard = (plan, index) => {
         return (
@@ -284,7 +245,11 @@ export default function Membership() {
         )
     }
 
-    return (
+    /**
+     * 渲染主要内容
+     * @returns {JSX.Element} 主要内容组件
+     */
+    const renderMainContent = () => (
         <View style={styles.container}>
             <ScrollView 
                 style={styles.scrollView} 
@@ -328,6 +293,15 @@ export default function Membership() {
             </ScrollView>
         </View>
     );
+
+    /**
+     * 统一的组件渲染逻辑
+     * 根据不同状态返回对应的界面
+     */
+    return (() => {
+        // 正常状态，显示主要内容
+        return renderMainContent();
+    })();
 }
 
 const styles = StyleSheet.create({

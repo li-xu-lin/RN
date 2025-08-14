@@ -28,7 +28,7 @@ router.get('/plans', async (req, res) => {
 });
 
 /**
- * 创建支付订单 - 简化版
+ * 创建支付订单
  */
 router.post('/create', async (req, res) => {
     try {
@@ -90,7 +90,6 @@ router.post('/create', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ 创建支付订单失败:', error);
         res.status(500).json({
             code: 500,
             msg: '创建支付订单失败',
@@ -100,7 +99,7 @@ router.post('/create', async (req, res) => {
 });
 
 /**
- * 查询支付结果 - 简化版
+ * 查询支付结果
  */
 router.post('/query', async (req, res) => {
     try {
@@ -151,7 +150,6 @@ router.post('/query', async (req, res) => {
         }
 
     } catch (error) {
-        console.error('❌ 查询支付结果失败:', error);
         res.status(500).json({
             code: 500,
             msg: '查询支付结果失败',
@@ -167,27 +165,19 @@ router.post('/notify', async (req, res) => {
     try {
         const notifyData = req.body;
         
-        console.log('🔔 收到支付宝通知:', notifyData);
-        console.log('🔔 通知时间:', new Date().toLocaleString());
-        
         // 验证通知
         const isValid = AlipayUtils.verifyNotify(notifyData);
         if (!isValid) {
-            console.error('❌ 支付宝通知验证失败');
             return res.send('failure');
         }
 
         const { out_trade_no, trade_status } = notifyData;
-        console.log('📋 订单号:', out_trade_no, '支付状态:', trade_status);
 
         // 支付成功，更新用户VIP状态
         if (trade_status === 'TRADE_SUCCESS' || trade_status === 'TRADE_FINISHED') {
             try {
-                console.log('🚀 开始处理支付成功回调...');
                 await updateUserVipStatus(out_trade_no);
-                console.log(`✅ 订单 ${out_trade_no} 处理成功`);
             } catch (error) {
-                console.error(`❌ 处理订单 ${out_trade_no} 失败:`, error.message);
                 return res.send('failure');
             }
         }
@@ -195,7 +185,6 @@ router.post('/notify', async (req, res) => {
         res.send('success');
 
     } catch (error) {
-        console.error('❌ 处理支付宝通知失败:', error);
         res.send('failure');
     }
 });
@@ -207,14 +196,12 @@ router.get('/return', async (req, res) => {
     try {
         const { out_trade_no, trade_status } = req.query;
         
-        console.log('🔄 收到支付宝同步回调:', { out_trade_no, trade_status });
-        
         if (trade_status === 'TRADE_SUCCESS') {
             // 同步回调也更新VIP状态（防止异步通知丢失）
             try {
                 await updateUserVipStatus(out_trade_no);
             } catch (error) {
-                console.error(`❌ 同步回调处理失败:`, error.message);
+                console.error(error.message);
             }
             
             res.send(`
@@ -289,7 +276,6 @@ router.get('/return', async (req, res) => {
             `);
         }
     } catch (error) {
-        console.error('❌ 处理支付宝同步回调失败:', error);
         res.send('处理失败');
     }
 });
@@ -303,8 +289,6 @@ router.get('/return', async (req, res) => {
  */
 async function updateUserVipStatus(outTradeNo) {
     try {
-        console.log('🔄 开始更新用户VIP状态:', outTradeNo);
-        
         // 从订单号解析用户ID和套餐类型
         const parts = outTradeNo.split('_');
         if (parts.length < 3) {
@@ -314,19 +298,11 @@ async function updateUserVipStatus(outTradeNo) {
         const userId = parts[0];
         const planType = parts[1];
         
-        console.log('📝 解析信息:', { userId, planType });
-        
         // 查找用户
         const user = await User.findById(userId);
         if (!user) {
             throw new Error('用户不存在');
         }
-        
-        console.log('📝 更新前用户信息:', {
-            username: user.username,
-            vipType: user.vip?.type,
-            isMember: user.isMember
-        });
         
         // 计算到期时间
         const expiryDate = AlipayUtils.calculateExpiryDate(planType);
@@ -344,15 +320,7 @@ async function updateUserVipStatus(outTradeNo) {
         
         await user.save();
         
-        console.log('✅ 用户信息更新成功:', {
-            username: user.username,
-            vipType: user.vip.type,
-            isMember: user.isMember,
-            endDate: expiryDate.toLocaleDateString()
-        });
-        
     } catch (error) {
-        console.error('❌ 更新用户VIP状态失败:', error.message);
         throw error;
     }
 }
@@ -369,10 +337,7 @@ router.post('/debug-update-vip', async (req, res) => {
             });
         }
         
-        // 构造订单号格式
         const outTradeNo = `${userId}_${planType}_${Date.now()}`;
-        
-        console.log('🔧 调试：手动触发VIP状态更新:', { userId, planType, outTradeNo });
         
         await updateUserVipStatus(outTradeNo);
         
@@ -383,7 +348,6 @@ router.post('/debug-update-vip', async (req, res) => {
         });
         
     } catch (error) {
-        console.error('❌ 调试更新VIP状态失败:', error);
         res.status(500).json({
             code: 500,
             msg: '更新失败: ' + error.message

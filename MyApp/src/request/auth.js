@@ -65,79 +65,81 @@ export const loginApi = async (data = {}) => {
     return apiCall(() => api.post('/auth/login', data))
 }
 
-
-
-
-
 // 每日签到
-export const dailySignApi = async (userId) => {
+export const QianDaoApi = async (userId) => {
     return apiCall(() => api.post('/auth/daily-sign', { userId }))
 }
 
 // 检查签到状态
-export const checkSignStatusApi = async (userId) => {
+export const getStatusApi = async (userId) => {
     return apiCall(() => api.post('/auth/check-sign-status', { userId }))
 }
 
 // 获取每日运势
-export const getDailyFortuneApi = async (userId) => {
+export const getYunShiApi = async (userId) => {
     return apiCall(() => api.post('/auth/daily-fortune', { userId }))
 }
 
 // 塔罗占卜相关API
-export const getTarotCardsApi = async () => {
+export const getCartApi = async () => {
     return apiCall(() => api.get('/tarot/cards'))
 }
 
-export const drawTarotCardApi = async (userId, question = '') => {
+// 塔罗占卜
+export const addCardApi = async (userId, question = '') => {
     return apiCall(() => api.post('/tarot/draw', { userId, question }))
 }
 
-export const getTarotHistoryApi = async (userId, limit = 10) => {
+// 塔罗占卜历史
+export const historyApi = async (userId, limit = 10) => {
     return apiCall(() => api.post('/tarot/history', { userId, limit }))
 }
 
-export const getTarotHistoryDetailApi = async (historyId) => {
+// 塔罗占卜历史详情
+export const CardAloneApi = async (historyId) => {
     return apiCall(() => api.post('/tarot/history-detail', { historyId }))
 }
 
 // 获取用户信息
-export const getUserInfoApi = async (userId) => {
+export const aloneUser = async (userId) => {
     return apiCall(() => api.get(`/auth/user/${userId}`))
 }
 
-// ==================== 个人资料相关API ====================
-export const updateUserProfileApi = async (userId, profileData) => {
+// 修改个人资料
+export const UpuserApi = async (userId, profileData) => {
     return apiCall(() => api.put(`/auth/profile/${userId}`, profileData))
 }
 
-export const changePasswordApi = async (userId, oldPassword, newPassword) => {
+// 修改密码
+export const UpPwd = async (userId, oldPassword, newPassword) => {
     return apiCall(() => api.put(`/auth/change-password/${userId}`, {
         oldPassword,
         newPassword
     }))
 }
 
-// ==================== 星座缘分相关API ====================
-export const getDailyZodiacFateApi = async (userId) => {
+// 获取每日星座缘分
+export const xingZuo = async (userId) => {
     return apiCall(() => api.post('/zodiac/daily-fate', { userId }))
 }
 
-// ==================== 占卜次数限制相关API ====================
-export const getDailyDivinationStatusApi = async (userId) => {
+// 获取每日占卜次数
+export const ZhanBuNums = async (userId) => {
     return apiCall(() => api.post('/tarot/daily-status', { userId }))
 }
 
-// ==================== 支付相关API ====================
-export const getPaymentPlansApi = async () => {
+// 获取支付计划
+export const zhiFuApi = async () => {
     return apiCall(() => api.get('/payment/plans'))
 }
 
-export const createPaymentApi = async (userId, planType) => {
+// 创建支付
+export const CreateZhiFu = async (userId, planType) => {
     return apiCall(() => api.post('/payment/create', { userId, planType }))
 }
 
-export const queryPaymentStatusApi = async (outTradeNo) => {
+// 查询支付状态
+export const queryZhiFu = async (outTradeNo) => {
     return apiCall(() => api.post('/payment/query', { outTradeNo }))
 }
 
