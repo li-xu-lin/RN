@@ -19,10 +19,7 @@ const userSchema = new mongoose.Schema({
 
     pwd: String,
 
-    imgs: {
-        type: String,
-        default: null
-    },
+    imgs: String,
 
     content: {
         type: String,
@@ -37,10 +34,7 @@ const userSchema = new mongoose.Schema({
     },
 
     // 新增字段
-    birthDate: {
-        type: String,  // 支持自定义日期格式
-        default: ''
-    },
+    birthDate:String,
 
     // 用户星座
     zodiacSign: {
@@ -56,18 +50,9 @@ const userSchema = new mongoose.Schema({
         district: String, // 区县
         fullAddress: String // 详细地址
     },
-    leiJiQianDao: {
-        type: Number,
-        default: 0
-    },
-    isQianDao: {
-        type: Boolean,
-        default: false
-    },
-    lastSignDate: {
-        type: Date,
-        default: null
-    },
+    leiJiQianDao: Number,
+    isQianDao: Boolean,
+    lastSignDate: Date,
     
     // 每日运势相关
     dailyFortune: {
@@ -98,32 +83,17 @@ const userSchema = new mongoose.Schema({
         index: true
     },
     
-    membershipEndDate: {
-        type: Date,
-        index: true
-    },
+    membershipEndDate: Date,
 
     // 占卜统计
     zhanBuStats: {
-        total: { // 总次数
-            type: Number,
-            default: 0,
-            min: 0
-        },
-        dayNum: { // 每日次数
-            type: Number,
-            default: 0,
-            min: 0
-        },
+        total: Number,
+        dayNum: Number,
         lastDate: Date, // 最后一次占卜时间
     },
 
 
-    exp: {
-        type: Number,
-        default: 0,
-        min: 0
-    },
+    exp: Number,
 
     // 用户偏好设置
     pianHao: {
@@ -135,25 +105,12 @@ const userSchema = new mongoose.Schema({
         }
     },
 
-    // 收藏和历史 - 已删除 favorites 字段
-
     // 时间戳
-    createdAt: {//创建时间
-        type: Date,
-        default: Date.now,
-        index: true
-    },
+    createdAt: Date,
 
-    updatedAt: {//更新时间
-        type: Date,
-        default: Date.now
-    },
+    updatedAt: Date,
 
-    lastLoginAt: {//最后登录时间
-        type: Date,
-        default: Date.now,
-        index: true
-    }
+    lastLoginAt: Date,
 });
 
 // 虚拟字段：根据经验值动态计算等级

@@ -12,13 +12,16 @@
     "init-156-interpretations": "node scripts/init156Interpretations.js",
     "generate-test-history": "node scripts/generateTestHistory.js",
     "init-zodiac-data": "node scripts/initZodiacData.js",
-    "test-weekly-match": "node scripts/testWeeklyMatch.js"
+    "test-weekly-match": "node scripts/testWeeklyMatch.js",
+    "test-payment": "node scripts/testPayment.js",
+    "test-real-payment": "node scripts/testRealPayment.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "alipay-sdk": "^4.14.0",
     "axios": "^1.10.0",
     "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",

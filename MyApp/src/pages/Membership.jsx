@@ -1,40 +1,43 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native'
-import React, { useState } from 'react'
-import { useNavigation } from '@react-navigation/native'
+import React, { useState, useEffect } from 'react'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { commonStyles, COLORS, SIZES } from '../styles/commonStyles'
-import { createPaymentOrderApi, queryPaymentStatusApi } from '../request/auth'
-
+import { createPaymentApi, queryPaymentStatusApi } from '../request/auth'
 
 export default function Membership() {
     const nav = useNavigation()
     const [loading, setLoading] = useState(false)
+    const [userInfo, setUserInfo] = useState(null)
 
+    // 页面焦点监听 - 当用户返回时检查会员状态
+    useFocusEffect(
+        React.useCallback(() => {
+            checkUserMembershipStatus();
+        }, [])
+    );
+
+    // 支付成功后会由全局路由处理，这里只需要在页面获得焦点时刷新状态
+    useFocusEffect(
+        React.useCallback(() => {
+            // 页面获得焦点时检查会员状态（可能刚完成支付）
+            checkUserMembershipStatus();
+        }, [])
+    );
+
+    // 会员套餐配置
     const membershipPlans = [
-        {
-            id: 'free',
-            type: '免费用户',
-            price: '免费',
-            priceDetail: '永久免费',
-            color: '#9CA3AF',
-            bgGradient: ['#F3F4F6', '#E5E7EB'],
-            features: [
-                '每天3次占卜',
-                '基础占卜结果'
-            ],
-            buttonText: '当前方案',
-            popular: false
-        },
         {
             id: 'monthly',
             type: '月会员',
-            price: '¥6.99',
+            price: '¥9.90',
             priceDetail: '/月',
             color: '#8B5CF6',
             bgGradient: ['#F3E8FF', '#E9D5FF'],
             features: [
-                '每天20次占卜',
-                '基础占卜结果',
+                '每日10次塔罗占卜',
+                '专业解读结果',
+                '详细占卜建议'
             ],
             buttonText: '立即开通',
             popular: false
@@ -42,19 +45,40 @@ export default function Membership() {
         {
             id: 'quarterly',
             type: '季会员',
-            price: '¥16.99',
+            price: '¥29.90',
             priceDetail: '/季',
             color: '#F59E0B',
             bgGradient: ['#FEF3C7', '#FDE68A'],
             features: [
-                '月会员所有权益',
-                '专属高级解读内容',
-                '更详细个性化解释'
+                '无限次塔罗占卜',
+                '专业解读结果',
+                '详细占卜建议'
             ],
             buttonText: '立即开通',
             popular: true
         }
     ];
+
+    // 检查用户会员状态
+    const checkUserMembershipStatus = async () => {
+        try {
+            const userObj = await AsyncStorage.getItem('user');
+            if (userObj) {
+                const user = JSON.parse(userObj);
+                setUserInfo(user);
+                
+                if (user.isMember && user.vip && user.vip.type !== '免费') {
+                    console.log('✅ 用户当前会员状态:', {
+                        isMember: user.isMember,
+                        vipType: user.vip.type,
+                        endDate: user.membershipEndDate
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('检查会员状态失败:', error);
+        }
+    };
 
     // 处理支付
     const handlePurchase = async (planId, planType) => {
@@ -66,89 +90,151 @@ export default function Membership() {
             // 获取用户信息
             const userObj = await AsyncStorage.getItem('user');
             if (!userObj) {
-                Alert.alert('错误', '请先登录');
+                Alert.alert('请先登录', '购买会员需要先登录账号');
                 return;
             }
             
             const user = JSON.parse(userObj);
             
             // 创建支付订单
-            const orderRes = await createPaymentOrderApi(user._id, planType);
-            if (!orderRes.success) {
-                Alert.alert('创建订单失败', orderRes.data.msg || '请稍后重试');
+            const paymentRes = await createPaymentApi(user._id, planType);
+            if (!paymentRes.success) {
+                Alert.alert('创建支付失败', paymentRes.data.msg || '请稍后重试');
                 return;
             }
             
-            const { orderId, paymentUrl, amount, productName } = orderRes.data.data;
+            const { outTradeNo, orderString, amount, planInfo } = paymentRes.data.data;
             
-            // 显示支付确认对话框
-            Alert.alert(
-                '确认购买',
-                `商品：${productName}\n金额：¥${amount}\n\n点击确认将跳转到支付宝进行支付`,
-                [
-                    { text: '取消', style: 'cancel' },
-                    { 
-                        text: '确认支付', 
-                        onPress: () => openPayment(paymentUrl, orderId)
-                    }
-                ]
-            );
+            console.log('📋 支付订单信息:', {
+                outTradeNo,
+                orderString: orderString ? '已获取' : '未获取',
+                amount,
+                planInfo
+            });
+            
+            // 保存支付信息供后续使用
+            await AsyncStorage.setItem('lastPaymentInfo', JSON.stringify({
+                outTradeNo,
+                planType: planType,
+                amount,
+                timestamp: Date.now()
+            }));
+            
+            // 直接跳转支付
+            openAlipayPayment(orderString, outTradeNo, planInfo);
             
         } catch (error) {
             console.error('支付处理失败:', error);
-            Alert.alert('支付失败', '网络错误，请稍后重试');
+            Alert.alert('支付失败', '网络连接异常，请检查网络后重试');
         } finally {
             setLoading(false);
         }
     };
     
-    // 打开支付链接
-    const openPayment = async (paymentUrl, orderId) => {
+    // 打开支付宝支付
+    const openAlipayPayment = async (paymentParams, outTradeNo, planInfo) => {
         try {
-            // 尝试打开支付宝APP或浏览器
-            const supported = await Linking.canOpenURL(paymentUrl);
-            if (supported) {
-                await Linking.openURL(paymentUrl);
-                
-                // 延迟查询支付结果
-                setTimeout(() => {
-                    checkPaymentResult(orderId);
-                }, 3000);
-            } else {
-                Alert.alert('错误', '无法打开支付链接');
+            console.log('🔍 检查支付参数:', {
+                paymentParams: paymentParams ? '存在' : '不存在',
+                paramsLength: paymentParams ? paymentParams.length : 0,
+                outTradeNo
+            });
+            
+            if (!paymentParams) {
+                Alert.alert('支付失败', '支付参数错误，请重试');
+                return;
             }
+            
+            // 构建支付宝支付URL
+            const paymentUrl = `https://openapi-sandbox.dl.alipaydev.com/gateway.do?${paymentParams}`;
+            
+            console.log('🌐 准备跳转到支付宝支付...');
+            console.log('🔗 支付URL长度:', paymentUrl.length);
+            
+            // 打开支付页面
+            await Linking.openURL(paymentUrl);
+            console.log('✅ 支付页面已打开');
+            
         } catch (error) {
-            console.error('打开支付链接失败:', error);
-            Alert.alert('错误', '无法打开支付页面');
+            console.error('❌ 支付处理失败:', error);
+            Alert.alert('支付失败', '无法打开支付页面，请稍后重试');
         }
     };
     
     // 检查支付结果
-    const checkPaymentResult = async (orderId) => {
+    const checkPaymentResult = async (outTradeNo) => {
         try {
-            const result = await queryPaymentStatusApi(orderId);
-            if (result.success && result.data.data.status === 'paid') {
+            Alert.alert('🔍 查询中', '正在查询支付状态，请稍候...');
+            
+            const result = await queryPaymentStatusApi(outTradeNo);
+            
+            if (result.success && result.data.data && result.data.data.status === 'paid') {
                 Alert.alert(
-                    '支付成功！',
-                    '会员购买成功，感谢您的支持！',
-                    [
-                        { text: '确定', onPress: () => nav.goBack() }
-                    ]
+                    '🎉 支付成功！',
+                    '恭喜您！会员已成功开通\n\n✅ 会员权益立即生效\n🔮 开始享受无限占卜服务',
+                    [{ 
+                        text: '开始使用', 
+                        onPress: () => nav.goBack()
+                    }]
                 );
+                // 刷新用户状态
+                checkUserMembershipStatus();
             } else {
-                // 可以设置定时器继续查询，或者让用户手动查询
                 Alert.alert(
-                    '支付状态确认',
-                    '正在确认支付状态，如果已完成支付但未生效，请稍后重试或联系客服',
+                    '⏳ 支付确认中',
+                    '系统正在确认您的支付状态\n\n如果您已完成支付，请稍等片刻\n支付成功会在几分钟内生效',
                     [
-                        { text: '重新查询', onPress: () => checkPaymentResult(orderId) },
-                        { text: '稍后再试', style: 'cancel' }
+                        { text: '稍后再试', style: 'cancel' },
+                        { 
+                            text: '重新查询', 
+                            onPress: () => setTimeout(() => checkPaymentResult(outTradeNo), 1000)
+                        }
                     ]
                 );
             }
         } catch (error) {
             console.error('查询支付结果失败:', error);
-            Alert.alert('查询失败', '请稍后重试或联系客服');
+            Alert.alert('查询失败', '网络连接异常，请稍后重试');
+        }
+    };
+
+    // 调试函数：手动触发VIP状态更新
+    const debugUpdateVipStatus = async (planType) => {
+        try {
+            const userObj = await AsyncStorage.getItem('user');
+            if (!userObj) {
+                Alert.alert('错误', '未找到用户信息');
+                return;
+            }
+            
+            const user = JSON.parse(userObj);
+            
+            console.log('🔧 调试：开始手动更新VIP状态...', { userId: user._id, planType });
+            
+            const response = await fetch('http://192.168.100.199:3010/payment/debug-update-vip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user._id,
+                    planType: planType
+                })
+            });
+            
+            const result = await response.json();
+            console.log('🔧 调试更新结果:', result);
+            
+            if (result.code === 200) {
+                Alert.alert('调试成功', `VIP状态已更新为：${planType}`);
+                // 刷新用户状态
+                checkUserMembershipStatus();
+            } else {
+                Alert.alert('调试失败', result.msg || '更新失败');
+            }
+        } catch (error) {
+            console.error('❌ 调试更新VIP状态失败:', error);
+            Alert.alert('调试失败', '网络错误: ' + error.message);
         }
     };
 
@@ -165,12 +251,6 @@ export default function Membership() {
                 {plan.popular && (
                     <View style={[styles.popularBadge, { backgroundColor: plan.color }]}>
                         <Text style={styles.popularText}>推荐</Text>
-                    </View>
-                )}
-                
-                {plan.badge && (
-                    <View style={[styles.specialBadge, { backgroundColor: plan.color }]}>
-                        <Text style={styles.badgeText}>{plan.badge}</Text>
                     </View>
                 )}
 
@@ -192,22 +272,12 @@ export default function Membership() {
                 </View>
 
                 <TouchableOpacity
-                    style={[
-                        styles.subscribeButton,
-                        { backgroundColor: plan.color },
-                        plan.id === 'free' && styles.freeButton
-                    ]}
-                    onPress={() => {
-                        if (plan.id !== 'free') {
-                            handlePurchase(plan.id, plan.type);
-                        }
-                    }}
+                    style={[styles.subscribeButton, { backgroundColor: plan.color }]}
+                    onPress={() => handlePurchase(plan.id, plan.type)}
+                    disabled={loading}
                 >
-                    <Text style={[
-                        styles.buttonText,
-                        plan.id === 'free' && styles.freeButtonText
-                    ]}>
-                        {loading && plan.id !== 'free' ? '处理中...' : plan.buttonText}
+                    <Text style={styles.buttonText}>
+                        {loading ? '处理中...' : plan.buttonText}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -230,26 +300,31 @@ export default function Membership() {
                         <Text style={styles.backIcon}>←</Text>
                     </TouchableOpacity>
                     <View style={styles.headerContent}>
-                        <Text style={styles.headerTitle}>💎 会员中心</Text>
+                        <Text style={styles.headerTitle}>会员中心</Text>
                         <Text style={styles.headerSubtitle}>解锁更多神秘功能，享受专属占卜体验</Text>
                     </View>
                 </View>
+
+                {/* 当前会员状态 */}
+                {userInfo && userInfo.isMember && (
+                    <View style={styles.currentStatusCard}>
+                        <Text style={styles.statusTitle}>✨ 当前会员状态</Text>
+                        <Text style={styles.statusText}>
+                            {userInfo.vip?.type || '免费用户'} 
+                            {userInfo.membershipEndDate && 
+                                ` · 到期时间：${new Date(userInfo.membershipEndDate).toLocaleDateString()}`
+                            }
+                        </Text>
+                    </View>
+                )}
 
                 {/* 会员套餐卡片 */}
                 <View style={styles.plansContainer}>
                     {membershipPlans.map((plan, index) => renderMembershipCard(plan, index))}
                 </View>
 
-                {/* 底部说明 */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerTitle}>🔮 会员特权说明</Text>
-                    <View style={styles.noteContainer}>
-                        <Text style={styles.noteText}>• 所有付费功能均为一次性付费，无自动续费</Text>
-                        <Text style={styles.noteText}>• 季会员和年会员享有不同的专属界面主题</Text>
-                        <Text style={styles.noteText}>• 年会员独享年度运势报告和重要日子提醒</Text>
-                        <Text style={styles.noteText}>• 如有任何问题，请联系客服获得帮助</Text>
-                    </View>
-                </View>
+
+
             </ScrollView>
         </View>
     );
@@ -420,32 +495,49 @@ const styles = StyleSheet.create({
     freeButtonText: {
         color: '#6B7280',
     },
-    footer: {
-        paddingHorizontal: 20,
-        paddingTop: 30,
-        paddingBottom: 20,
-    },
-    footerTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#6B46C1',
-        marginBottom: 15,
-        textAlign: 'center',
-    },
-    noteContainer: {
+    currentStatusCard: {
         backgroundColor: '#fff',
         borderRadius: 15,
         padding: 20,
-        shadowColor: '#8B5CF6',
+        marginHorizontal: 15,
+        marginBottom: 20,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 6,
+        shadowRadius: 5,
         elevation: 3,
     },
-    noteText: {
+    statusTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#374151',
+        marginBottom: 10,
+    },
+    statusText: {
+        fontSize: 16,
+        color: '#4B5563',
+        lineHeight: 22,
+    },
+    // 调试样式
+    debugContainer: {
+        margin: 20,
+        padding: 15,
+        backgroundColor: '#FFF3CD',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#FFC107',
+    },
+    debugButton: {
+        backgroundColor: '#FF6B35',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 6,
+        marginBottom: 10,
+        alignItems: 'center',
+    },
+    debugButtonText: {
+        color: '#fff',
         fontSize: 14,
-        color: '#6B7280',
-        lineHeight: 20,
-        marginBottom: 8,
+        fontWeight: '600',
     },
 }); 

@@ -16,7 +16,7 @@ async function checkDailyDivinationLimit(user) {
     const vipType = user.vip?.type || '免费';
     const dailyLimits = {
         '免费': 3,
-        '月会员': 20,
+        '月会员': 10,
         '季会员': -1  // -1 表示无限次数
     };
     

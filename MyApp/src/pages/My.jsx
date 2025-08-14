@@ -36,7 +36,8 @@ export default function My() {
                     levelTitle: user.levelTitle || '初学者',
                     exp: user.exp || 0,
                     progress: user.levelProgress || 0,
-                    expNeeded: user.levelInfo?.expNeeded || 100
+                    expToNext: user.levelInfo?.expToNext || 0,
+                    nextLevelExp: user.levelInfo?.nextLevelExp || 100
                 })
             }
         } catch (error) {
@@ -66,13 +67,14 @@ export default function My() {
                 setUser(latestUserData);
 
                 // 更新等级信息
-                setLevelInfo({
-                    level: latestUserData.level || 1,
-                    levelTitle: latestUserData.levelTitle || '初学者',
-                    exp: latestUserData.exp || 0,
-                    progress: latestUserData.levelProgress || 0,
-                    expNeeded: latestUserData.levelInfo?.expNeeded || 100
-                });
+                                    setLevelInfo({
+                        level: latestUserData.level || 1,
+                        levelTitle: latestUserData.levelTitle || '初学者',
+                        exp: latestUserData.exp || 0,
+                        progress: latestUserData.levelProgress || 0,
+                        expToNext: latestUserData.levelInfo?.expToNext || 0,
+                        nextLevelExp: latestUserData.levelInfo?.nextLevelExp || 100
+                    });
             } else {
                 getUser();
             }
@@ -164,7 +166,7 @@ export default function My() {
                     <View style={styles.levelInfo}>
                         <Text style={styles.levelTitle}>Lv.{levelInfo.level} {levelInfo.levelTitle}</Text>
                         <Text style={styles.expInfo}>
-                            还差 <Text style={styles.expNeeded}>{levelInfo.expNeeded - levelInfo.exp}</Text> 经验升级
+                            还差 <Text style={styles.expNeeded}>{levelInfo.expToNext || 0}</Text> 经验升级
                         </Text>
                     </View>
                 </View>

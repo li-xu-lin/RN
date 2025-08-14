@@ -2,7 +2,7 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 // Android模拟器使用 10.0.2.2，真实设备使用实际IP
-const API = 'http://10.0.2.2:3010'
+const API = 'http://192.168.100.199:3010'
 
 // 创建axios实例
 const api = axios.create({
@@ -127,4 +127,19 @@ export const getDailyZodiacFateApi = async (userId) => {
 export const getDailyDivinationStatusApi = async (userId) => {
     return apiCall(() => api.post('/tarot/daily-status', { userId }))
 }
+
+// ==================== 支付相关API ====================
+export const getPaymentPlansApi = async () => {
+    return apiCall(() => api.get('/payment/plans'))
+}
+
+export const createPaymentApi = async (userId, planType) => {
+    return apiCall(() => api.post('/payment/create', { userId, planType }))
+}
+
+export const queryPaymentStatusApi = async (outTradeNo) => {
+    return apiCall(() => api.post('/payment/query', { outTradeNo }))
+}
+
+
 
