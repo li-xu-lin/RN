@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native'
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { aloneUser } from '../request/auth';
 import { commonStyles, COLORS } from '../styles/commonStyles';
+import { getLevelInfo } from '../utils/lvJiSuan';
 
 export default function My() {
     //跳转
@@ -12,30 +13,15 @@ export default function My() {
     const [user, setUser] = useState(null)
 
 
-    const [levelInfo, setLevelInfo] = useState({
-        level: 1,
-        levelTitle: '初学者',
-        exp: 0,
-        progress: 0,
-        expNeeded: 100
-    })
+    // 使用useMemo计算等级信息
+    const levelInfo = useMemo(() => {
+        if (!user || !user.exp) return { level: 1, title: '初学者', expToNext: 100 };
+        return getLevelInfo(user.exp);
+    }, [user?.exp]);
 
     const getUser = async () => {
         let user = JSON.parse(await AsyncStorage.getItem('user'))
         setUser(user)
-        // 设置等级信息
-        setLevelInfo({
-            // 等级
-            level: user.level || 1,
-            // 等级标题
-            levelTitle: user.levelTitle || '初学者',
-            // 经验
-            exp: user.exp || 0,
-            // 进度
-            progress: user.levelProgress || 0,
-            // 升级还需经验
-            expToNext: user.levelInfo?.expToNext || 0
-        })
     }
 
     // 刷新用户信息（从服务器获取最新数据）
@@ -49,14 +35,7 @@ export default function My() {
                 await AsyncStorage.setItem('user', JSON.stringify(latestUserData));
                 setUser(latestUserData);
 
-                // 更新等级信息
-                setLevelInfo({
-                    level: latestUserData.level || 1,
-                    levelTitle: latestUserData.levelTitle || '初学者',
-                    exp: latestUserData.exp || 0,
-                    progress: latestUserData.levelProgress || 0,
-                    expToNext: latestUserData.levelInfo?.expToNext || 0
-                });
+                // 等级信息通过useMemo自动计算
             } else {
                 getUser();
             }
@@ -110,14 +89,7 @@ export default function My() {
                 contentContainerStyle={commonStyles.scrollContent}
             >   
                 <View style={styles.header}>
-                    <TouchableOpacity
-                        style={styles.backBtn}
-                        onPress={() => nav.navigate('HomeTab')}
-                    >
-                        <Text style={styles.backIcon}>←</Text>
-                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>个人中心</Text>
-                    <View style={styles.placeholder} />
                 </View>
 
                 <View style={styles.profileSection}>
@@ -136,7 +108,7 @@ export default function My() {
 
                 <View style={styles.levelSection}>
                     <View style={styles.levelInfo}>
-                        <Text style={styles.levelTitle}>Lv.{levelInfo.level} {levelInfo.levelTitle}</Text>
+                        <Text style={styles.levelTitle}>Lv.{levelInfo.level} {levelInfo.title}</Text>
                         <Text style={styles.expInfo}>
                             还差 <Text style={styles.expNeeded}>{levelInfo.expToNext || 0}</Text> 经验升级
                         </Text>
@@ -203,22 +175,11 @@ export default function My() {
 const styles = StyleSheet.create({
     header: {
         ...commonStyles.header,
-        ...commonStyles.headerRow,
-    },
-    backBtn: {
-        ...commonStyles.roundButton,
-    },
-    backIcon: {
-        fontSize: 20,
-        color: COLORS.white,
-        fontWeight: 'bold',
-        marginBottom: 9
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     headerTitle: {
         ...commonStyles.headerTitle,
-    },
-    placeholder: {
-        width: 40,
     },
     profileSection: {
         ...commonStyles.paddingHorizontal,
@@ -229,8 +190,12 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     defaultAvatar: {
-        ...commonStyles.avatar,
-        ...commonStyles.defaultAvatar,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#f0f4ff',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     avatarEmoji: {
         fontSize: 32,
@@ -292,21 +257,21 @@ const styles = StyleSheet.create({
     },
     serviceItem: {
         width: '100%',
-        height: 100,
+        height: 80,
         backgroundColor: '#fff',
-        borderRadius: 15,
-        paddingVertical: 15,
-        paddingHorizontal: 12,
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 15,
+        marginBottom: 12,
         shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 4,
+        elevation: 2,
         borderWidth: 1,
-        borderColor: 'rgba(139, 92, 246, 0.1)',
+        borderColor: 'rgba(139, 92, 246, 0.08)',
     },
     serviceIcon: {
         fontSize: 28,

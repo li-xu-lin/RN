@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { getYunShiApi, xingZuo as xingZuoApi, ZhanBuNums } from '../request/auth'
 import { commonStyles, COLORS } from '../styles/commonStyles'
+import { getLevelInfo } from '../utils/lvJiSuan'
 
 
 export default function Home() {
@@ -88,6 +89,12 @@ export default function Home() {
 
 
 
+  // 使用useMemo计算等级信息
+  const levelInfo = useMemo(() => {
+    if (!user || !user.exp) return { level: 1, title: '初学者', expToNext: 100 };
+    return getLevelInfo(user.exp);
+  }, [user?.exp]);
+
   useEffect(() => {
     getUser();
   }, [])
@@ -115,7 +122,7 @@ export default function Home() {
               <Text style={styles.greeting}>✨ 你好，{user?.username || '神秘占卜师'}</Text>
               <View style={styles.userLevelInfo}>
                 <Text style={styles.subGreeting}>
-                  {user?.levelTitle || '初学者'} • Lv.{user?.level || 1}
+                  {levelInfo.title} • Lv.{levelInfo.level}
                 </Text>
               </View>
             </View>
@@ -308,10 +315,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   profileBtn: {
-    ...commonStyles.roundButton,
     width: 45,
     height: 45,
     borderRadius: 22.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatarText: {
     fontSize: 20,
@@ -396,14 +405,14 @@ const styles = StyleSheet.create({
   },
   quickCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 15,
-    marginBottom: 12,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -434,19 +443,19 @@ const styles = StyleSheet.create({
   },
   zodiacCard: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 15,
+    padding: 15,
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
   userZodiacContainer: {
     backgroundColor: '#f0f4ff',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 15,
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 12,
     alignItems: 'center',
   },
   userZodiacLabel: {

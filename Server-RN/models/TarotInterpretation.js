@@ -3,14 +3,12 @@ const mongoose = require('mongoose');
 const tarotInterpretationSchema = new mongoose.Schema({
     cardId: {
         type: String,
-        required: true,
-        index: true
+        required: true
     },
     position: {
         type: String,
         required: true,
-        enum: ['upright', 'reversed'],
-        index: true
+        enum: ['upright', 'reversed']
     },
     keywords: {
         type: [String],
@@ -46,12 +44,7 @@ const tarotInterpretationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, {
-    timestamps: true
 });
-
-// 复合索引确保cardId和position的组合唯一
-tarotInterpretationSchema.index({ cardId: 1, position: 1 }, { unique: true });
 
 const TarotInterpretation = mongoose.model('TarotInterpretation', tarotInterpretationSchema, 'TarotInterpretation');
 

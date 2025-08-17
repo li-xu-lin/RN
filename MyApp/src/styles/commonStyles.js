@@ -5,23 +5,18 @@ export const COLORS = {
   primary: '#8B5CF6',
   background: '#f8f5ff',
   white: '#fff',
-  lightGray: '#f5f5f5',
   darkGray: '#666',
   text: '#333',
   border: '#e0e0e0',
   shadow: 'rgba(0, 0, 0, 0.1)',
-  primaryLight: 'rgba(139, 92, 246, 0.1)',
-  whiteTransparent: 'rgba(255, 255, 255, 0.2)',
 };
 
 // 公共尺寸常量
 export const SIZES = {
   padding: 20,
-  radius: 20,
+  radius: 15,
   headerHeight: 50,
   buttonHeight: 45,
-  avatarSize: 80,
-  smallAvatar: 40,
 };
 
 // 公共样式
@@ -45,17 +40,6 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  
-  smallCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 15,
-    padding: 15,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -69,8 +53,8 @@ export const commonStyles = StyleSheet.create({
     paddingTop: SIZES.headerHeight,
     paddingBottom: 20,
     paddingHorizontal: SIZES.padding,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   
   headerRow: {
@@ -118,61 +102,29 @@ export const commonStyles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  roundButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.whiteTransparent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  
-  // 头像相关
-  avatar: {
-    width: SIZES.avatarSize,
-    height: SIZES.avatarSize,
-    borderRadius: SIZES.avatarSize / 2,
-    borderWidth: 4,
-    borderColor: COLORS.primary,
-  },
-  
-  smallAvatar: {
-    width: SIZES.smallAvatar,
-    height: SIZES.smallAvatar,
-    borderRadius: SIZES.smallAvatar / 2,
-    borderWidth: 2,
-    borderColor: COLORS.whiteTransparent,
-  },
-  
-  defaultAvatar: {
-    backgroundColor: COLORS.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  
   // 文本相关
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 10,
-  },
-  
-  subtitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '600',
     color: COLORS.text,
     marginBottom: 8,
   },
   
-  bodyText: {
+  subtitle: {
     fontSize: 16,
+    fontWeight: '600',
     color: COLORS.text,
-    lineHeight: 24,
+    marginBottom: 6,
+  },
+  
+  bodyText: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 20,
   },
   
   smallText: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.darkGray,
   },
   
@@ -196,11 +148,11 @@ export const commonStyles = StyleSheet.create({
   },
   
   marginTop: {
-    marginTop: 20,
+    marginTop: 15,
   },
   
   marginBottom: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   
   padding: {
@@ -214,10 +166,10 @@ export const commonStyles = StyleSheet.create({
   // 输入框相关
   input: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -225,9 +177,4 @@ export const commonStyles = StyleSheet.create({
   inputFocused: {
     borderColor: COLORS.primary,
   },
-});
-
-// 常用的组合样式
-export const combineStyles = (...styles) => {
-  return StyleSheet.flatten(styles);
-}; 
+}); 

@@ -95,25 +95,7 @@ export default function JinRiYunShi() {
             <Text style={styles.adviceText}>{yunData.yunShi}</Text>
         </View>
 
-        <View style={styles.elementsCard}>
-          <Text style={styles.cardTitle}>🔮 幸运元素解析</Text>
-          
-          <View style={styles.elementSection}>
-            <View style={styles.elementHeader}>
-              <Text style={styles.elementIcon}>🎨</Text>
-                <Text style={styles.elementTitle}>幸运色：{yunData.yunColor}</Text>
-            </View>
-              <Text style={styles.elementDesc}>{yunData.colorDesc}</Text>
-          </View>
 
-          <View style={styles.elementSection}>
-            <View style={styles.elementHeader}>
-              <Text style={styles.elementIcon}>🔢</Text>
-                <Text style={styles.elementTitle}>幸运数字：{yunData.yunNumber}</Text>
-            </View>
-              <Text style={styles.elementDesc}>{yunData.numberDesc}</Text>
-          </View>
-        </View>
 
         <View style={styles.tipCard}>
           <Text style={styles.tipTitle}>温馨提示</Text>
@@ -192,18 +174,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  elementsCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
+
   tipCard: {
     backgroundColor: '#f8f5ff',
     marginHorizontal: 20,
@@ -260,30 +231,6 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
   },
 
-  // 元素解析
-  elementSection: {
-    marginBottom: 20,
-  },
-  elementHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  elementIcon: {
-    fontSize: 20,
-    marginRight: 10,
-  },
-  elementTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  elementDesc: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    paddingLeft: 30,
-  },
 
   // 提示卡片
   tipTitle: {

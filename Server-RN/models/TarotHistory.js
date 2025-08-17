@@ -56,12 +56,7 @@ const tarotHistorySchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, {
-    timestamps: true
 });
-
-// 按用户ID和时间索引
-tarotHistorySchema.index({ userId: 1, createdAt: -1 });
 
 const TarotHistory = mongoose.model('TarotHistory', tarotHistorySchema, 'TarotHistory');
 

@@ -4,8 +4,7 @@ const simpleTarotCardSchema = new mongoose.Schema({
     cardId: {
         type: String,
         required: true,
-        unique: true,
-        index: true
+        unique: true
     },
     name: {
         type: String,
@@ -60,13 +59,7 @@ const simpleTarotCardSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, {
-    timestamps: true
 });
-
-// 索引
-simpleTarotCardSchema.index({ suit: 1, number: 1 });
-simpleTarotCardSchema.index({ 'stats.drawCount': -1 });
 
 const SimpleTarotCard = mongoose.model('SimpleTarotCard', simpleTarotCardSchema, 'SimpleTarotCard');
 

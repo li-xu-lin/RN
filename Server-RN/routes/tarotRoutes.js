@@ -91,102 +91,79 @@ async function updateDivinationStats(userId) {
     });
 }
 
-// 获取所有塔罗牌
+// 获取所有塔罗牌列表接口
 router.get('/cards', async (req, res) => {
     try {
+        // 从数据库查询所有塔罗牌，只选择指定字段
         const cards = await SimpleTarotCard.find({}).select('cardId name suit number element description');
-        return res.status(200).json({
-            code: 200,
-            data: cards,
-            msg: "获取塔罗牌列表成功"
-        });
+        // 返回成功响应
+        return res.status(200).json({ code: 200, data: cards, msg: "获取塔罗牌列表成功" });
     } catch (error) {
-        console.error('❌ 获取塔罗牌列表失败:', error);
-        return res.status(500).json({
-            code: 500,
-            msg: "服务器内部错误"
-        });
+        // 捕获并记录错误
+        console.error('获取塔罗牌列表失败:', error);
+        // 返回服务器错误响应
+        return res.status(500).json({ code: 500, msg: "服务器内部错误" });
     }
 });
 
-// 抽取塔罗牌进行占卜（单张牌）
+// 抽取塔罗牌进行占卜接口
 router.post('/draw', async (req, res) => {
     try {
+        // 从请求体中获取用户ID和问题
         const { userId, question } = req.body;
-        
-        if (!userId) {
-            return res.status(400).json({
-                code: 400,
-                msg: "用户ID不能为空"
-            });
-        }
+        // 验证用户ID是否为空
+        if (!userId) return res.status(400).json({ code: 400, msg: "用户ID不能为空" });
 
-        // 验证用户是否存在
+        // 根据用户ID查找用户
         const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({
-                code: 404,
-                msg: "用户不存在"
-            });
-        }
+        // 验证用户是否存在
+        if (!user) return res.status(404).json({ code: 404, msg: "用户不存在" });
 
-        // 检查会员限制和每日占卜次数
+        // 检查用户的每日占卜限制
         const membershipCheck = await checkDailyDivinationLimit(user);
+        // 如果超过限制，返回错误
         if (!membershipCheck.allowed) {
             return res.status(403).json({
                 code: 403,
                 msg: membershipCheck.message,
                 data: {
-                    currentCount: membershipCheck.currentCount,
-                    maxCount: membershipCheck.maxCount,
-                    vipType: user.vip.type,
-                    resetTime: membershipCheck.resetTime
+                    currentCount: membershipCheck.currentCount, // 当前使用次数
+                    maxCount: membershipCheck.maxCount, // 最大允许次数
+                    vipType: user.vip.type, // VIP类型
+                    resetTime: membershipCheck.resetTime // 重置时间
                 }
             });
         }
 
-        // 随机抽取一张塔罗牌
+        // 从数据库获取所有塔罗牌
         const allCards = await SimpleTarotCard.find({});
-        if (allCards.length === 0) {
-            return res.status(404).json({
-                code: 404,
-                msg: "暂无塔罗牌数据"
-            });
-        }
+        // 检查是否有塔罗牌数据
+        if (allCards.length === 0) return res.status(404).json({ code: 404, msg: "暂无塔罗牌数据" });
 
         // 随机选择一张牌
         const randomIndex = Math.floor(Math.random() * allCards.length);
         const selectedCard = allCards[randomIndex];
-
         // 随机决定正位或逆位（30%概率逆位）
-        const isReversed = Math.random() < 0.3;
-        const position = isReversed ? 'reversed' : 'upright';
+        const position = Math.random() < 0.3 ? 'reversed' : 'upright';
         
-        // 获取对应的解释
+        // 查找对应的牌解释
         const interpretation = await TarotInterpretation.findOne({
-            cardId: selectedCard.cardId,
-            position: position
+            cardId: selectedCard.cardId, // 匹配牌ID
+            position: position // 匹配位置（正位/逆位）
         });
 
-        if (!interpretation) {
-            return res.status(404).json({
-                code: 404,
-                msg: "未找到牌的解释数据"
-            });
-        }
+        // 检查是否找到解释数据
+        if (!interpretation) return res.status(404).json({ code: 404, msg: "未找到牌的解释数据" });
 
         // 更新牌的统计信息
         await SimpleTarotCard.findByIdAndUpdate(selectedCard._id, {
-            $inc: { 
-                'stats.drawCount': 1,
-                [`stats.${position}Count`]: 1
-            },
-            'stats.lastDrawn': new Date()
+            $inc: { 'stats.drawCount': 1, [`stats.${position}Count`]: 1 }, // 增加抽取次数和位置次数
+            'stats.lastDrawn': new Date() // 更新最后抽取时间
         });
 
         // 更新解释的统计信息
         await TarotInterpretation.findByIdAndUpdate(interpretation._id, {
-            $inc: { 'stats.drawCount': 1 },
+            $inc: { 'stats.drawCount': 1 }, // 增加抽取次数
             'stats.lastDrawn': new Date()
         });
 
@@ -356,44 +333,7 @@ router.post('/history', async (req, res) => {
     }
 });
 
-// 获取特定牌的解释
-router.get('/interpretation/:cardId/:position', async (req, res) => {
-    try {
-        const { cardId, position } = req.params;
-        
-        if (!['upright', 'reversed'].includes(position)) {
-            return res.status(400).json({
-                code: 400,
-                msg: "位置参数错误，应为 upright 或 reversed"
-            });
-        }
 
-        const interpretation = await TarotInterpretation.findOne({
-            cardId,
-            position
-        });
-
-        if (!interpretation) {
-            return res.status(404).json({
-                code: 404,
-                msg: "未找到对应的解释"
-            });
-        }
-
-        return res.status(200).json({
-            code: 200,
-            data: interpretation,
-            msg: "获取解释成功"
-        });
-
-    } catch (error) {
-        console.error('❌ 获取解释失败:', error);
-        return res.status(500).json({
-            code: 500,
-            msg: "服务器内部错误"
-        });
-    }
-});
 
 // 获取单个塔罗占卜历史详情
 router.post('/history-detail', async (req, res) => {

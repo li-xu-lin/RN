@@ -56,8 +56,8 @@ export default function Login() {
       <StatusBar barStyle="dark-content" backgroundColor="#f8f5ff" />
 
       <View style={styles.header}>
-        <Text style={styles.title}>✨ 欢迎来到星占奇缘</Text>
-        <Text style={styles.subtitle}>🔮 探索你的命运密码</Text>
+        <Text style={styles.title}>欢迎来到星占奇缘</Text>
+        <Text style={styles.subtitle}>探索你的命运密码</Text>
       </View>
 
       <View style={styles.formContainer}>
@@ -84,23 +84,12 @@ export default function Login() {
           />
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>忘记密码?</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.loginButton}
           onPress={handleLogin}
         >
           <Text style={styles.loginButtonText}>开始占卜之旅</Text>
         </TouchableOpacity>
-
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>还没有账号? </Text>
-          <TouchableOpacity>
-            <Text style={styles.registerLink}>立即注册</Text>
-          </TouchableOpacity>
-        </View>
         <Snackbar
           visible={visible}
           onDismiss={onDismissSnackBar}
@@ -162,14 +151,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 25,
-  },
-  forgotPasswordText: {
-    color: '#8B5CF6',
-    fontSize: 14,
-  },
+
   loginButton: {
     height: 50,
     backgroundColor: '#8B5CF6',
@@ -188,19 +170,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  registerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 15,
-  },
-  registerText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  registerLink: {
-    color: '#8B5CF6',
-    fontSize: 14,
-    fontWeight: '500',
-  },
+
 });
 

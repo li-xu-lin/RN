@@ -42,7 +42,7 @@ class AlipayUtils {
   }
 
   /**
-   * 查询支付结果 - 简化版
+   * 查询支付结果
    */
   static async queryPayment(outTradeNo) {
     try {
@@ -77,7 +77,7 @@ class AlipayUtils {
   }
 
   /**
-   * 验证支付宝通知 - 简化版
+    * 验证支付宝通知
    */
   static verifyNotify(params) {
     try {

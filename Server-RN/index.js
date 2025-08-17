@@ -33,7 +33,6 @@ connectDB();
 
 // 导入API路由模块
 const authRoutes = require('./routes/authRoutes');       
-const fortuneRoutes = require('./routes/YunshiRoutes');
 const tarotRoutes = require('./routes/tarotRoutes');
 const zodiacRoutes = require('./routes/zodiacRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
@@ -41,7 +40,6 @@ const paymentRoutes = require('./routes/paymentRoutes');
 // 注册API路由
 
 app.use('/auth', authRoutes);        
-app.use('/yunShi', fortuneRoutes);
 app.use('/tarot', tarotRoutes);
 app.use('/zodiac', zodiacRoutes);
 app.use('/payment', paymentRoutes);
