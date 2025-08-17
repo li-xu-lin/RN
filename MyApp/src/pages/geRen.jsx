@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import {View,Text,ScrollView,StyleSheet,TouchableOpacity,TextInput,Alert,Dimensions,StatusBar} from 'react-native';
+import {View,Text,ScrollView,StyleSheet,TouchableOpacity,TextInput,Alert,StatusBar} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UpuserApi } from '../request/auth';
 
-export default function geRen({ navigation }) {
-  // 用户信息
-  const [user, setUser] = useState(null);
-  // 表单数据
-  const [formData, setFormData] = useState({
-    nickname: '',
-    phone: '',
-    bio: '',
-    gender: '',
-    birthDate: ''
-  });
+export default function GeRen({ navigation }) {
+  //昵称
+  const [username, setUsername] = useState('');
+  //手机号
+  const [phone, setPhone] = useState('');
+  //个人简介
+  const [content, setContent] = useState('');
+  //性别
+  const [sex, setSex] = useState('');
   // 加载状态
   const [loading, setLoading] = useState(false);
+  //用户信息
+  const [user, setUser] = useState({});
 
   // 获取用户信息
   useEffect(() => {
@@ -24,58 +24,45 @@ export default function geRen({ navigation }) {
 
   // 获取用户信息
   const getUserInfo = async () => {
-    try {
-      const userObj = await AsyncStorage.getItem('user');
-      if (userObj) {
-        const userData = JSON.parse(userObj);
+    const userData = JSON.parse(await AsyncStorage.getItem('user'));
         setUser(userData);
-        // 处理生日格式转换
-        let formattedBirthDate = '';
-        if (userData.birthDate) {
-          const date = new Date(userData.birthDate);
-          if (!isNaN(date.getTime())) {
-            formattedBirthDate = date.toISOString().split('T')[0];
-          }
-        }
 
-        setFormData({
-          nickname: userData.username || userData.nickname || '',
-          phone: userData.phone || '',
-          bio: userData.content || userData.bio || '',
-          gender: userData.sex || userData.gender || '',
-          birthDate: formattedBirthDate
-        });
-      }
-    } catch (error) {
-      console.error('获取用户信息失败:', error);
-    }
+    setUsername(userData.username || '');
+    setPhone(userData.phone || '');
+    setContent(userData.content || '');
+    setSex(userData.sex || '');
   };
 
   // 保存用户信息
   const handleSave = async () => {
-    if (!formData.nickname.trim()) {
-      Alert.alert('提示', '昵称不能为空');
+    if (!username || !username.trim()) {
+      Alert.alert('提示', '用户名不能为空');
       return;
     }
 
-    if (!formData.phone.trim()) {
+    if (!phone || !phone.trim()) {
       Alert.alert('提示', '手机号不能为空');
       return;
     }
 
     setLoading(true);
     try {
-      const result = await UpuserApi(user._id, formData);
+      const formData = {
+        username,    
+        phone,       
+        content,      
+        sex,          
+      };
       
-      if (result.success) {
-        // 更新本地存储的用户信息，映射到正确的字段名
+      const res = await UpuserApi(user._id, formData);
+      
+      if (res.success) {
         const updatedUser = { 
           ...user, 
-          username: formData.nickname,
-          phone: formData.phone,
-          content: formData.bio,
-          sex: formData.gender,
-          birthDate: formData.birthDate
+          username: username,
+          phone: phone,
+          content: content,
+          sex: sex,
         };
         await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
@@ -84,7 +71,7 @@ export default function geRen({ navigation }) {
           { text: '确定', onPress: () => navigation.goBack() }
         ]);
       } else {
-        Alert.alert('失败', result.data?.msg || '更新失败，请稍后重试');
+        Alert.alert('失败','更新失败，请稍后重试');
       }
     } catch (error) {
       Alert.alert('错误', '网络异常，请检查网络连接');
@@ -93,23 +80,9 @@ export default function geRen({ navigation }) {
     }
   };
 
-  // 处理输入变化
-  const inputFn = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  /**
-   * 渲染主要内容
-   * @returns {JSX.Element} 主要内容组件
-   */
-  const renderMainContent = () => (
+  return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      
-      {/* 头部区域 */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
@@ -131,76 +104,64 @@ export default function geRen({ navigation }) {
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.formContainer}>
-          {/* 昵称字段 */}
+
           <View style={styles.formField}>
-            <Text style={styles.fieldLabel}>昵称</Text>
+            <Text style={styles.fieldLabel}>用户名</Text>
             <TextInput
               style={styles.fieldInput}
-              placeholder="请输入昵称"
+              placeholder="请输入用户名"
               placeholderTextColor="#999"
-              value={formData.nickname}
-              onChangeText={(value) => inputFn('nickname', value)}
+              value={username}
+              onChangeText={setUsername}
             />
           </View>
 
-          {/* 手机号字段 */}
+
           <View style={styles.formField}>
             <Text style={styles.fieldLabel}>手机号</Text>
             <TextInput
               style={styles.fieldInput}
               placeholder="请输入手机号"
               placeholderTextColor="#999"
-              value={formData.phone}
-              onChangeText={(value) => inputFn('phone', value)}
+              value={phone}
+              onChangeText={setPhone}
               keyboardType="phone-pad"
             />
           </View>
 
-          {/* 性别选择器 */}
+
           <View style={styles.formField}>
             <Text style={styles.fieldLabel}>性别</Text>
             <View style={styles.genderContainer}>
-              {['男', '女'].map((gender) => (
+              {['男', '女'].map((genderOption) => (
                 <TouchableOpacity
-                  key={gender}
+                  key={genderOption}
                   style={[
                     styles.genderOption,
-                    formData.gender === gender && styles.genderOptionSelected
+                    sex === genderOption && styles.genderOptionSelected
                   ]}
-                  onPress={() => inputFn('gender', gender)}
+                  onPress={() => setSex(genderOption)}
                 >
                   <Text style={[
                     styles.genderOptionText,
-                    formData.gender === gender && styles.genderOptionTextSelected
+                    sex === genderOption && styles.genderOptionTextSelected
                   ]}>
-                    {gender}
+                    {genderOption}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          {/* 生日字段 */}
-          <View style={styles.formField}>
-            <Text style={styles.fieldLabel}>生日</Text>
-            <TextInput
-              style={styles.fieldInput}
-              placeholder="请输入生日，如：1995-01-01"
-              placeholderTextColor="#999"
-              value={formData.birthDate}
-              onChangeText={(value) => inputFn('birthDate', value)}
-            />
-          </View>
 
-          {/* 个人简介字段 */}
           <View style={styles.formField}>
             <Text style={styles.fieldLabel}>个人简介</Text>
             <TextInput
               style={[styles.fieldInput, styles.multilineInput]}
               placeholder="介绍一下自己吧..."
               placeholderTextColor="#999"
-              value={formData.bio}
-              onChangeText={(value) => inputFn('bio', value)}
+              value={content}
+              onChangeText={setContent}
               multiline={true}
               numberOfLines={3}
             />
@@ -211,15 +172,6 @@ export default function geRen({ navigation }) {
       </ScrollView>
     </View>
   );
-
-  /**
-   * 统一的组件渲染逻辑
-   * 根据不同状态返回对应的界面
-   */
-  return (() => {
-    // 正常状态，显示主要内容
-    return renderMainContent();
-  })();
 }
 
 const styles = StyleSheet.create({

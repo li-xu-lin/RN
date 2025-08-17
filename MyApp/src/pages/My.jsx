@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { aloneUser } from '../request/auth';
-import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
+import { commonStyles, COLORS } from '../styles/commonStyles';
 
 export default function My() {
     //跳转
@@ -20,61 +20,43 @@ export default function My() {
         expNeeded: 100
     })
 
-
-
-
     const getUser = async () => {
-        try {
-            const userObj = await AsyncStorage.getItem('user')
-            if (userObj) {
-                let user = JSON.parse(userObj)
-                setUser(user)
-
-                // 设置等级信息（使用新的等级系统）
-                setLevelInfo({
-                    level: user.level || 1,
-                    levelTitle: user.levelTitle || '初学者',
-                    exp: user.exp || 0,
-                    progress: user.levelProgress || 0,
-                    expToNext: user.levelInfo?.expToNext || 0,
-                    nextLevelExp: user.levelInfo?.nextLevelExp || 100
-                })
-            }
-        } catch (error) {
-
-        }
+        let user = JSON.parse(await AsyncStorage.getItem('user'))
+        setUser(user)
+        // 设置等级信息
+        setLevelInfo({
+            // 等级
+            level: user.level || 1,
+            // 等级标题
+            levelTitle: user.levelTitle || '初学者',
+            // 经验
+            exp: user.exp || 0,
+            // 进度
+            progress: user.levelProgress || 0,
+            // 升级还需经验
+            expToNext: user.levelInfo?.expToNext || 0
+        })
     }
 
     // 刷新用户信息（从服务器获取最新数据）
-    const refreshUserInfo = async () => {
+    const shuaUser = async () => {
         try {
-            const userObj = await AsyncStorage.getItem('user');
-            if (!userObj) {
-                getUser();
-                return;
-            }
+            const userData = JSON.parse(await AsyncStorage.getItem('user'));
 
-            const userData = JSON.parse(userObj);
-            if (!userData._id) {
-                getUser();
-                return;
-            }
-
-            const result = await aloneUser(userData._id);
-            if (result.success) {
-                const latestUserData = result.data.data;
+            const res = await aloneUser(userData._id);
+            if (res.success) {
+                const latestUserData = res.data.data;
                 await AsyncStorage.setItem('user', JSON.stringify(latestUserData));
                 setUser(latestUserData);
 
                 // 更新等级信息
-                                    setLevelInfo({
-                        level: latestUserData.level || 1,
-                        levelTitle: latestUserData.levelTitle || '初学者',
-                        exp: latestUserData.exp || 0,
-                        progress: latestUserData.levelProgress || 0,
-                        expToNext: latestUserData.levelInfo?.expToNext || 0,
-                        nextLevelExp: latestUserData.levelInfo?.nextLevelExp || 100
-                    });
+                setLevelInfo({
+                    level: latestUserData.level || 1,
+                    levelTitle: latestUserData.levelTitle || '初学者',
+                    exp: latestUserData.exp || 0,
+                    progress: latestUserData.levelProgress || 0,
+                    expToNext: latestUserData.levelInfo?.expToNext || 0
+                });
             } else {
                 getUser();
             }
@@ -90,12 +72,12 @@ export default function My() {
 
     // 当页面聚焦时刷新用户信息
     useFocusEffect(
-        React.useCallback(() => {
-            refreshUserInfo();
+        useCallback(() => {
+            shuaUser();
         }, [])
     );
 
-    const handleLogout = async () => {
+    const tuiLogin = async () => {
         Alert.alert(
             "退出登录",
             "确定要退出登录吗？",
@@ -120,18 +102,13 @@ export default function My() {
         );
     }
 
-    /**
-     * 渲染主要内容
-     * @returns {JSX.Element} 主要内容组件
-     */
-    const renderMainContent = () => (
+    return (
         <View style={commonStyles.container}>
             <ScrollView
                 style={commonStyles.scrollView}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={commonStyles.scrollContent}
-            >
-                {/* 头部背景 */}
+            >   
                 <View style={styles.header}>
                     <TouchableOpacity
                         style={styles.backBtn}
@@ -143,7 +120,6 @@ export default function My() {
                     <View style={styles.placeholder} />
                 </View>
 
-                {/* 用户信息卡片 */}
                 <View style={styles.profileSection}>
                     <View style={commonStyles.card}>
                         <View style={styles.avatarSection}>
@@ -158,7 +134,6 @@ export default function My() {
                     </View>
                 </View>
 
-                {/* 等级信息 */}
                 <View style={styles.levelSection}>
                     <View style={styles.levelInfo}>
                         <Text style={styles.levelTitle}>Lv.{levelInfo.level} {levelInfo.levelTitle}</Text>
@@ -168,7 +143,6 @@ export default function My() {
                     </View>
                 </View>
 
-                {/* 我的服务 */}
                 <View style={styles.servicesSection}>
                     <Text style={styles.sectionTitle}>🔮 我的服务</Text>
                     <View style={styles.serviceGrid}>
@@ -189,7 +163,6 @@ export default function My() {
                     </View>
                 </View>
 
-                {/* 功能菜单 */}
                 <View style={styles.menuSection}>
                     <Text style={styles.sectionTitle}>🛠️ 更多功能</Text>
                     <View style={styles.menuList}>
@@ -217,28 +190,17 @@ export default function My() {
                     </View>
                 </View>
 
-                {/* 退出登录 */}
                 <View style={styles.logoutSection}>
-                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <TouchableOpacity style={styles.logoutButton} onPress={tuiLogin}>
                         <Text style={styles.logoutText}>退出登录</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
         </View>
     );
-
-    /**
-     * 统一的组件渲染逻辑
-     * 根据不同状态返回对应的界面
-     */
-    return (() => {
-        // 正常状态，显示主要内容
-        return renderMainContent();
-    })();
 };
 
 const styles = StyleSheet.create({
-    // 头部
     header: {
         ...commonStyles.header,
         ...commonStyles.headerRow,
@@ -258,7 +220,6 @@ const styles = StyleSheet.create({
     placeholder: {
         width: 40,
     },
-    // 用户信息
     profileSection: {
         ...commonStyles.paddingHorizontal,
         marginTop: -10,
@@ -314,7 +275,6 @@ const styles = StyleSheet.create({
         height: 30,
         backgroundColor: '#E5E7EB',
     },
-    // 服务区域
     servicesSection: {
         paddingHorizontal: 20,
         marginTop: 25,
@@ -358,7 +318,6 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         textAlign: 'center',
     },
-    // 菜单区域
     menuSection: {
         paddingHorizontal: 20,
         marginTop: 25,
@@ -422,7 +381,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    // 等级进度条样式
     levelSection: {
         ...commonStyles.paddingHorizontal,
         marginTop: 20,

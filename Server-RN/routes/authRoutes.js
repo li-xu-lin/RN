@@ -454,13 +454,13 @@ router.get('/user/:userId', async (req, res) => {
 router.put('/profile/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
-        const { nickname, phone, bio, gender, birthDate } = req.body;
+        const { username, phone, content, sex } = req.body;  // 移除birthDate
 
         // 验证必需字段
-        if (!nickname?.trim()) {
+        if (!username?.trim()) {
             return res.status(400).json({
                 code: 400,
-                msg: "昵称不能为空"
+                msg: "用户名不能为空"
             });
         }
 
@@ -495,13 +495,13 @@ router.put('/profile/:userId', async (req, res) => {
             });
         }
 
-        // 更新用户信息，映射到正确的字段名
+        // 更新用户信息，移除birthDate
         const updateData = {
-            username: nickname.trim(),  // 映射到username字段
+            username: username.trim(),
             phone: phone.trim(),
-            content: bio?.trim() || '',  // 映射到content字段
-            sex: gender || '',           // 映射到sex字段
-            birthDate: birthDate || ''
+            content: content?.trim() || '',
+            sex: sex || ''
+            // 移除birthDate字段
         };
 
         const updatedUser = await User.findByIdAndUpdate(

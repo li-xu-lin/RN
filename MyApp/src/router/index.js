@@ -10,14 +10,16 @@ import Login from '../pages/Login';
 import Home from '../pages/Home';
 import My from '../pages/My';
 import ZhanBu from '../pages/ZhanBu';
+import ZhanBuXiangXi from '../pages/ZhanBuXiangXi';
 import HistoryList from '../pages/HistoryList';
 import HistoryAlone from '../pages/HistoryAlone';
 
 import JinRiYunShi from '../pages/jinRiYunShi';
 import QianDao from '../pages/QianDao';
 import VipShip from '../pages/VipShip';
-import geRen from '../pages/geRen';
+import GeRen from '../pages/geRen';
 import ChangePwd from '../pages/ChangePwd';
+import { queryZhiFu } from '../request/auth';
 
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -115,11 +117,14 @@ const AppNavigator = () => {
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="Main" component={TabNavigator} />
       <RootStack.Screen name="ZhanBu" component={ZhanBu} />
-      <RootStack.Screen name="DivinationDetail" component={HistoryAlone} />
+      <RootStack.Screen name="ZhanBuXiangXi" component={ZhanBuXiangXi} />
+      <RootStack.Screen name="LiShiXiangQing">
+        {({ route }) => <HistoryAlone historyId={route.params?.historyId} />}
+      </RootStack.Screen>
       <RootStack.Screen name="VipShip" component={VipShip} />
       <RootStack.Screen name="JinRiYunShi" component={JinRiYunShi} />
       <RootStack.Screen name="QianDao" component={QianDao} />
-      <RootStack.Screen name="geRen" component={geRen} />
+      <RootStack.Screen name="geRen" component={GeRen} />
               <RootStack.Screen name="ChangePwd" component={ChangePwd} />
     </RootStack.Navigator>
   );
@@ -135,51 +140,114 @@ const Router = () => {
 
 
 
-  // 处理支付成功
-  const handlePaymentSuccess = async () => {
+
+    // 更新用户会员状态
+  const updateUserStatus = async (outTradeNo) => {
     try {
-      const user = JSON.parse(await AsyncStorage.getItem('user'));
-      const token = await AsyncStorage.getItem('token');
       
-      const res = await fetch(`http://192.168.100.199:3010/auth/user/${user._id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      // 1. 先调用支付查询接口，触发后端状态更新
+      const queryResult = await queryZhiFu(outTradeNo);
       
-      if (res.ok) {
-        const result = await res.json();
-        if (result.code === 200) {
-          await AsyncStorage.setItem('user', JSON.stringify(result.data));
+      if (queryResult.success && queryResult.data.data.status === 'paid') {
+        
+        // 2. 支付成功，获取最新用户信息
+        const user = JSON.parse(await AsyncStorage.getItem('user'));
+        const token = await AsyncStorage.getItem('token');
+        
+        const res = await fetch(`http://192.168.100.200:3010/auth/user/${user._id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const result = await res.json();
           
-          if (result.data.vip?.type && result.data.vip.type !== '免费') {
-            Alert.alert('🎊 会员开通成功！');
-          } else {
-            Alert.alert('⚠️ 会员状态异常');
+          
+          if (result.code === 200) {
+            await AsyncStorage.setItem('user', JSON.stringify(result.data));
+            Alert.alert('会员开通成功！');
           }
         }
+      } else if (queryResult.success) {
+        
+        
+        // 如果是pending或unknown状态，都尝试强制更新（测试用）
+        if (queryResult.data.data.status === 'pending' || queryResult.data.data.status === 'unknown') {
+          
+          
+          try {
+            const user = JSON.parse(await AsyncStorage.getItem('user'));
+            const planType = outTradeNo.split('_')[1]; // 从订单号提取套餐类型
+            
+            const forceUpdateRes = await fetch('http://192.168.100.200:3010/payment/debug-update-vip', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user._id, planType })
+            });
+            
+            if (forceUpdateRes.ok) {
+              
+              
+              // 重新获取用户信息
+              const token = await AsyncStorage.getItem('token');
+              const userRes = await fetch(`http://192.168.100.200:3010/auth/user/${user._id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              
+              if (userRes.ok) {
+                const userResult = await userRes.json();
+                if (userResult.code === 200) {
+                  await AsyncStorage.setItem('user', JSON.stringify(userResult.data));
+                  
+                  Alert.alert('会员开通成功！');
+                }
+              }
+            }
+          } catch (forceError) {
+            console.log('强制更新失败:', forceError);
+          }
+        }
+      } else {
+        console.log('支付查询失败:', queryResult);
       }
     } catch (error) {
-      Alert.alert('支付处理失败');
+      Alert.alert('状态更新失败', '请稍后重试或联系客服');
     }
   };
 
   useEffect(() => {
+    // 检查用户登录状态
     checkToken();
     
-    // 处理支付成功链接
-    Linking.getInitialURL().then((url) => {
+    // 监听支付成功链接
+    const handlePaymentLink = (url) => {
+      
       if (url?.includes('myapp://payment/success')) {
-        setTimeout(handlePaymentSuccess, 1000);
+        
+        // 从URL中提取订单号
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        const outTradeNo = urlParams.get('out_trade_no');
+        
+        
+        if (outTradeNo) {
+          // 延迟更新，确保后端处理完成
+          setTimeout(() => updateUserStatus(outTradeNo), 2000);
+        } else {
+        }
       }
-    });
+    };
     
+    // 处理应用启动时的链接
+    Linking.getInitialURL().then(handlePaymentLink);
+    
+    // 监听运行时的链接跳转
     const linkingListener = Linking.addEventListener('url', (event) => {
-      if (event.url?.includes('myapp://payment/success')) {
-        setTimeout(handlePaymentSuccess, 1000);
-      }
+      handlePaymentLink(event.url);
     });
     
+    // 定期检查登录状态（每2秒）
     const interval = setInterval(checkToken, 2000);
     
+    // 清理函数
     return () => {
       linkingListener.remove();
       clearInterval(interval);
@@ -215,7 +283,7 @@ const Router = () => {
         ) : (
           <AuthStack.Screen 
             name="Login" 
-            children={() => <Login onLoginSuccess={checkToken} />}
+            component={Login}
           />
         )}
       </AuthStack.Navigator>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 import { QianDaoApi, getStatusApi, aloneUser } from '../request/auth';
 
 export default function QianDao() {
@@ -29,14 +28,14 @@ export default function QianDao() {
             
             if (users && users._id) {
                 // 从服务端获取最新的签到状态
-                const statusResult = await getStatusApi(users._id);
-                if (statusResult.success) {
-                    const serverData = statusResult.data.data;
+                const res = await getStatusApi(users._id);
+                if (res.success) {
+                    const serverData = res.data.data;
                     setTotalDay(serverData.leiJiQianDao)
                     setQian(serverData.isQianDao)
                     
                     // 同时更新本地存储的用户数据
-                    const updatedUser = {
+                    const upUser = {
                         ...users,
                         leiJiQianDao: serverData.leiJiQianDao,
                         isQianDao: serverData.isQianDao,
@@ -44,7 +43,7 @@ export default function QianDao() {
                         levelTitle: serverData.levelTitle,
                         exp: serverData.exp
                     };
-                    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+                    await AsyncStorage.setItem('user', JSON.stringify(upUser));
                 } else {
                     // 如果获取服务端状态失败，使用本地数据作为备用
                     setTotalDay(users.leiJiQianDao || 0)
@@ -64,18 +63,7 @@ export default function QianDao() {
         }
         
         try {
-            const userObj = await AsyncStorage.getItem('user');
-            if (!userObj) {
-                Alert.alert('错误', '用户信息获取失败');
-                return;
-            }
-            
-            const userData = JSON.parse(userObj);
-            
-            if (!userData._id) {
-                Alert.alert('错误', '用户ID获取失败，请重新登录');
-                return;
-            }
+            const userData = JSON.parse(await AsyncStorage.getItem('user'));
             
             const result = await QianDaoApi(userData._id);
             
@@ -126,11 +114,7 @@ export default function QianDao() {
         getUser();
     }, []);
     
-    /**
-     * 渲染主要内容
-     * @returns {JSX.Element} 主要内容组件
-     */
-    const renderMainContent = () => (
+    return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity
@@ -145,7 +129,6 @@ export default function QianDao() {
 
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                 <View style={styles.content}>
-                    {/* 签到主卡片 */}
                     <View style={styles.signCard}>
                         <Text style={styles.welcomeText}>
                             你好，{user?.username || '占卜师'}！
@@ -159,79 +142,46 @@ export default function QianDao() {
                             })}
                         </Text>
 
-                        {/* 签到按钮 */}
-                        <View style={styles.signButtonContainer}>
-                            <TouchableOpacity
-                                style={[styles.signButton, isQian && styles.signedButton]}
-                                onPress={handleSignIn}
-                                disabled={isQian}
-                            >
-                                {/* 签到文字 */}
-                                <Text style={[styles.calendarIcon, isQian && styles.signedIcon]}>
-                                    签到
-                                </Text>
-                                
-                                {/* 签到文字 */}
-                                <Text style={[styles.signText, isQian && styles.signedText]}>
-                                    {isQian ? '打卡完成' : '每日打卡'}
-                                </Text>
-                                
-                                {/* 状态图标 */}
-                                {isQian && (
-                                    <View style={styles.checkMark}>
-                                        <Text style={styles.checkIcon}>✓</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* 签到统计 */}
-                        <View style={styles.statsContainer}>
+                        <View style={styles.statsRow}>
                             <View style={styles.statItem}>
                                 <Text style={styles.statNumber}>{totalDay}</Text>
                                 <Text style={styles.statLabel}>累计签到</Text>
-                            </View>
                         </View>
                     </View>
 
-                    {/* 签到奖励 */}
-                    <View style={styles.rewardsSection}>
-                        <Text style={styles.sectionTitle}>🎁 每日奖励</Text>
-                        <View style={styles.dailyRewardCard}>
-                            <Text style={[styles.rewardIcon, { color: dailyReward.color }]}>
-                                {dailyReward.icon}
+                        <TouchableOpacity
+                            style={[
+                                styles.signButton,
+                                isQian && styles.signButtonDisabled
+                            ]}
+                            onPress={handleSignIn}
+                            disabled={isQian}
+                        >
+                            <Text style={styles.signButtonText}>
+                                {isQian ? '今日已签到' : '点击签到'}
                             </Text>
-                            <Text style={styles.dailyRewardText}>{dailyReward.reward}</Text>
-                            {isQian && (
-                                <View style={styles.completedBadge}>
-                                    <Text style={styles.completedText}>今日已领取</Text>
+                        </TouchableOpacity>
                                 </View>
-                            )}
+
+                    <View style={styles.rewardCard}>
+                        <Text style={styles.rewardTitle}>每日奖励</Text>
+                        <View style={styles.rewardItem}>
+                            <Text style={styles.rewardIcon}>{dailyReward.icon}</Text>
+                            <Text style={styles.rewardText}>{dailyReward.reward}</Text>
                         </View>
                     </View>
 
-                    {/* 签到说明 */}
-                    <View style={styles.rulesSection}>
-                        <Text style={styles.sectionTitle}>📋 签到说明</Text>
-                        <View style={styles.rulesList}>
-                            <Text style={styles.ruleItem}>• 每日签到可获得固定经验值奖励</Text>
-                            <Text style={styles.ruleItem}>• 每天只能签到一次</Text>
-                            <Text style={styles.ruleItem}>• 累计签到天数用于记录总签到次数</Text>
-                        </View>
+                    <View style={styles.infoCard}>
+                        <Text style={styles.infoTitle}>签到说明</Text>
+                        <Text style={styles.infoText}>
+                            • 每日签到可获得经验值奖励{'\n'}
+                            • 经验值用于提升占卜师等级{'\n'}
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
         </View>
     );
-
-    /**
-     * 统一的组件渲染逻辑
-     * 根据不同状态返回对应的界面
-     */
-    return (() => {
-        // 正常状态，显示主要内容
-        return renderMainContent();
-    })();
 }
 
 const styles = StyleSheet.create({
@@ -466,5 +416,80 @@ const styles = StyleSheet.create({
     checkIcon: {
         fontSize: 20,
         color: '#fff',
+    },
+    signButtonDisabled: {
+        backgroundColor: '#E0E0E0',
+        borderColor: '#A0A0A0',
+        opacity: 0.7,
+    },
+    signButtonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#8B5CF6',
+    },
+    statsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: 30,
+    },
+    rewardCard: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 20,
+        marginBottom: 20,
+        shadowColor: '#8B5CF6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
+    },
+    rewardTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#6B46C1',
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    rewardItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    rewardIcon: {
+        fontSize: 24,
+        marginRight: 10,
+    },
+    rewardText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+    },
+    rewardDesc: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
+        marginTop: 10,
+    },
+    infoCard: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 20,
+        shadowColor: '#8B5CF6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 3,
+    },
+    infoTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#6B46C1',
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    infoText: {
+        fontSize: 14,
+        color: '#666',
+        lineHeight: 22,
     },
 }); 

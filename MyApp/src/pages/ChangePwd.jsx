@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View,Text,ScrollView,StyleSheet,TouchableOpacity,TextInput,Alert,StatusBar} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, StatusBar } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -12,22 +12,15 @@ export default function ChangePwd() {
   // 用户信息状态
   const [user, setUser] = useState(null);
 
-  // 表单数据状态
-  const [formData, setFormData] = useState({
-    oldPwd: '',      // 当前密码
-    newPwd: '',      // 新密码
-    pwd: ''   // 确认密码
-  });
+  //旧密码
+  const [oldPwd, setOldPwd] = useState('');
+  //新密码
+  const [newPwd, setNewPwd] = useState('');
+  //确认新密码
+  const [pwd, setPwd] = useState('');
 
   // 加载状态
   const [loading, setLoading] = useState(false);
-
-  // 密码显示/隐藏状态
-  const [showPasswords, setShowPasswords] = useState({
-    old: false,     // 当前密码显示状态
-    new: false,     // 新密码显示状态
-    confirm: false  // 确认密码显示状态
-  });
 
   // 组件挂载时获取用户信息
   useEffect(() => {
@@ -35,14 +28,7 @@ export default function ChangePwd() {
   }, []);
 
   const getUser = async () => {
-    try {
-      const userObj = await AsyncStorage.getItem('user');
-      if (userObj) {
-        setUser(JSON.parse(userObj));
-      }
-    } catch (error) {
-      console.error('获取用户信息失败:', error);
-    }
+    setUser(JSON.parse(await AsyncStorage.getItem('user')));
   };
 
   //密码格式验证
@@ -59,38 +45,38 @@ export default function ChangePwd() {
   //处理密码修改
   const gaiPwd = async () => {
     // 验证当前密码
-    if (!formData.oldPwd.trim()) {
+    if (!oldPwd.trim()) {
       Alert.alert('提示', '请输入当前密码');
       return;
     }
 
     // 验证新密码
-    if (!formData.newPwd.trim()) {
+    if (!newPwd.trim()) {
       Alert.alert('提示', '请输入新密码');
       return;
     }
 
     // 验证确认密码
-    if (!formData.pwd.trim()) {
+    if (!pwd.trim()) {
       Alert.alert('提示', '请确认新密码');
       return;
     }
 
     // 验证新密码格式
-    const pwds = yanPwd(formData.newPwd);
+    const pwds = yanPwd(newPwd);
     if (pwds) {
       Alert.alert('密码格式错误', pwds);
       return;
     }
 
     // 确认密码一致性
-    if (formData.newPwd !== formData.pwd) {
+    if (newPwd !== pwd) {
       Alert.alert('提示', '两次输入的新密码不一致');
       return;
     }
 
     // 检查新旧密码是否相同
-    if (formData.oldPwd === formData.newPwd) {
+    if (oldPwd === newPwd) {
       Alert.alert('提示', '新密码不能与当前密码相同');
       return;
     }
@@ -98,9 +84,9 @@ export default function ChangePwd() {
     // 开始修改密码
     setLoading(true);
     try {
-      const result = await UpPwd(user._id, formData.oldPwd, formData.newPwd);
+      const res = await UpPwd(user._id, oldPwd, newPwd);
 
-      if (result.success) {
+      if (res.success) {
         Alert.alert('成功', '密码修改成功', [
           {
             text: '确定',
@@ -108,7 +94,7 @@ export default function ChangePwd() {
           }
         ]);
       } else {
-        Alert.alert('失败', result.data?.msg || '密码修改失败，请稍后重试');
+        Alert.alert('失败', '密码修改失败，请稍后重试');
       }
     } catch (error) {
       Alert.alert('错误', '网络异常，请检查网络连接');
@@ -117,27 +103,7 @@ export default function ChangePwd() {
     }
   };
 
-  //处理输入框内容变化
-  const inputFn = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  //切换密码显示/隐藏状态
-  const qie = (field) => {
-    setShowPasswords(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
-  };
-
-  /**
-   * 渲染主要内容
-   * @returns {JSX.Element} 主要内容组件
-   */
-  const renderMainContent = () => (
+  return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
@@ -161,20 +127,12 @@ export default function ChangePwd() {
                 style={styles.passwordInput}
                 placeholder="请输入当前密码"
                 placeholderTextColor="#999"
-                value={formData.oldPwd}
-                onChangeText={(value) => inputFn('oldPwd', value)}
-                secureTextEntry={!showPasswords.old}
+                value={oldPwd}
+                onChangeText={setOldPwd}
+                secureTextEntry={true}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => qie('old')}
-              >
-                <Text style={styles.eyeIcon}>
-                  {showPasswords.old ? '👁️' : '👁️‍🗨️'}
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
 
@@ -185,20 +143,12 @@ export default function ChangePwd() {
                 style={styles.passwordInput}
                 placeholder="请输入新密码"
                 placeholderTextColor="#999"
-                value={formData.newPwd}
-                onChangeText={(value) => inputFn('newPwd', value)}
-                secureTextEntry={!showPasswords.new}
+                value={newPwd}
+                onChangeText={setNewPwd}
+                secureTextEntry={true}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => qie('new')}
-              >
-                <Text style={styles.eyeIcon}>
-                  {showPasswords.new ? '👁️' : '👁️‍🗨️'}
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
 
@@ -209,20 +159,12 @@ export default function ChangePwd() {
                 style={styles.passwordInput}
                 placeholder="请再次输入新密码"
                 placeholderTextColor="#999"
-                value={formData.pwd}
-                onChangeText={(value) => inputFn('pwd', value)}
-                secureTextEntry={!showPasswords.confirm}
+                value={pwd}
+                onChangeText={setPwd}
+                secureTextEntry={true}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => qie('confirm')}
-              >
-                <Text style={styles.eyeIcon}>
-                  {showPasswords.confirm ? '👁️' : '👁️‍🗨️'}
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
 
@@ -240,15 +182,6 @@ export default function ChangePwd() {
       </ScrollView>
     </View>
   );
-
-  /**
-   * 统一的组件渲染逻辑
-   * 根据不同状态返回对应的界面
-   */
-  return (() => {
-    // 正常状态，显示主要内容
-    return renderMainContent();
-  })();
 };
 
 const styles = StyleSheet.create({
@@ -317,25 +250,16 @@ const styles = StyleSheet.create({
   },
 
   passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 10,
     backgroundColor: '#F9FAFB',
   },
   passwordInput: {
-    flex: 1,
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
     color: '#333',
-  },
-  eyeButton: {
-    padding: 12,
-  },
-  eyeIcon: {
-    fontSize: 18,
   },
 
   submitButton: {

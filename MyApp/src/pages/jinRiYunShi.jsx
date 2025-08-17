@@ -5,59 +5,39 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function JinRiYunShi() {
   const nav = useNavigation();
-  
-  // 状态
-  const [user, setUser] = useState(null);
-  const [fortuneData, setFortuneData] = useState(null);
+  // 运势数据
+  const [yunData, setYunData] = useState(null);
+  // 加载状态
   const [loading, setLoading] = useState(true);
 
   // 获取用户数据
   const getUserData = async () => {
-    try {
-      const userObj = await AsyncStorage.getItem('user');
-      if (userObj) {
-        const userData = JSON.parse(userObj);
-        setUser(userData);
-        
+    const userData = JSON.parse(await AsyncStorage.getItem('user'));
         if (userData.dailyFortune) {
-          setFortuneData({
-            dailyColor: userData.dailyFortune.luckyColor,
-            dailyNumber: userData.dailyFortune.luckyNumber,
-            fortuneScore: userData.dailyFortune.fortuneScore,
-            fortuneAdvice: userData.dailyFortune.yunShi,
-            dailyColorDesc: userData.dailyFortune.luckyColorDesc || '暂无描述',
-            dailyNumberDesc: userData.dailyFortune.luckyNumberDesc || '暂无描述'
+          setYunData({
+            yunColor: userData.dailyFortune.luckyColor,
+            yunNumber: userData.dailyFortune.luckyNumber,
+            zhiShu: userData.dailyFortune.fortuneScore,
+            yunShi: userData.dailyFortune.yunShi,
+            colorDesc: userData.dailyFortune.luckyColorDesc,
+            numberDesc: userData.dailyFortune.luckyNumberDesc
           });
         }
-      }
-    } catch (error) {
-        
-    } finally {
       setLoading(false);
-    }
   };
 
   useEffect(() => {
     getUserData();
   }, []);
 
-  /**
-   * 渲染加载状态
-   * @returns {JSX.Element} 加载状态组件
-   */
-  const renderLoadingState = () => (
+  return (
+    loading ? (
     <View style={styles.container}>
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>加载中...</Text>
       </View>
     </View>
-  );
-
-  /**
-   * 渲染错误状态
-   * @returns {JSX.Element} 错误状态组件
-   */
-  const renderErrorState = () => (
+    ) : !yunData ? (
     <View style={styles.container}>
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>运势数据加载失败</Text>
@@ -69,23 +49,13 @@ export default function JinRiYunShi() {
         </TouchableOpacity>
       </View>
     </View>
-  );
-
-  /**
-   * 渲染主要内容
-   * @returns {JSX.Element} 主要内容组件
-   */
-  const renderMainContent = () => {
-    const { dailyColor, dailyNumber, fortuneScore, fortuneAdvice, dailyColorDesc, dailyNumberDesc } = fortuneData;
-    
-    return (
+    ) : (
     <View style={styles.container}>
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* 头部 */}
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.backBtn}
@@ -97,7 +67,6 @@ export default function JinRiYunShi() {
           <View style={styles.placeholder} />
         </View>
 
-        {/* 运势概览卡片 */}
         <View style={styles.overviewCard}>
           <Text style={styles.cardTitle}>🌟 运势概览</Text>
           <Text style={styles.dateText}>{new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}</Text>
@@ -106,51 +75,48 @@ export default function JinRiYunShi() {
             <View style={styles.fortuneItem}>
               <Text style={styles.fortuneEmoji}>🎨</Text>
               <Text style={styles.fortuneLabel}>幸运色</Text>
-              <Text style={styles.fortuneValue}>{dailyColor}</Text>
+                <Text style={styles.fortuneValue}>{yunData.yunColor}</Text>
             </View>
             <View style={styles.fortuneItem}>
               <Text style={styles.fortuneEmoji}>🔢</Text>
               <Text style={styles.fortuneLabel}>幸运数字</Text>
-              <Text style={styles.fortuneValue}>{dailyNumber}</Text>
+                <Text style={styles.fortuneValue}>{yunData.yunNumber}</Text>
             </View>
             <View style={styles.fortuneItem}>
               <Text style={styles.fortuneEmoji}>⭐</Text>
               <Text style={styles.fortuneLabel}>运势指数</Text>
-              <Text style={styles.fortuneValue}>{fortuneScore}分</Text>
+                <Text style={styles.fortuneValue}>{yunData.zhiShu}分</Text>
             </View>
           </View>
         </View>
 
-        {/* 详细建议 */}
         <View style={styles.adviceCard}>
           <Text style={styles.cardTitle}>💫 今日运势详解</Text>
-          <Text style={styles.adviceText}>{fortuneAdvice}</Text>
+            <Text style={styles.adviceText}>{yunData.yunShi}</Text>
         </View>
 
-        {/* 幸运元素解析 */}
         <View style={styles.elementsCard}>
           <Text style={styles.cardTitle}>🔮 幸运元素解析</Text>
           
           <View style={styles.elementSection}>
             <View style={styles.elementHeader}>
               <Text style={styles.elementIcon}>🎨</Text>
-              <Text style={styles.elementTitle}>幸运色：{dailyColor}</Text>
+                <Text style={styles.elementTitle}>幸运色：{yunData.yunColor}</Text>
             </View>
-            <Text style={styles.elementDesc}>{dailyColorDesc}</Text>
+              <Text style={styles.elementDesc}>{yunData.colorDesc}</Text>
           </View>
 
           <View style={styles.elementSection}>
             <View style={styles.elementHeader}>
               <Text style={styles.elementIcon}>🔢</Text>
-              <Text style={styles.elementTitle}>幸运数字：{dailyNumber}</Text>
+                <Text style={styles.elementTitle}>幸运数字：{yunData.yunNumber}</Text>
             </View>
-            <Text style={styles.elementDesc}>{dailyNumberDesc}</Text>
+              <Text style={styles.elementDesc}>{yunData.numberDesc}</Text>
           </View>
         </View>
 
-        {/* 温馨提示 */}
         <View style={styles.tipCard}>
-          <Text style={styles.tipTitle}>💡 温馨提示</Text>
+          <Text style={styles.tipTitle}>温馨提示</Text>
           <Text style={styles.tipText}>
             运势仅供参考，真正的幸运来自于积极的心态和不懈的努力。
             保持乐观，相信自己，每一天都是新的开始！
@@ -158,23 +124,8 @@ export default function JinRiYunShi() {
         </View>
       </ScrollView>
     </View>
-    );
-  };
-
-  /**
-   * 统一的组件渲染逻辑
-   * 根据不同状态返回对应的界面
-   */
-  return (() => {
-    // 加载中状态
-    if (loading) return renderLoadingState();
-    
-    // 数据为空状态
-    if (!fortuneData) return renderErrorState();
-    
-    // 正常数据状态
-    return renderMainContent();
-  })();
+    )
+  );
 }
 
 const styles = StyleSheet.create({

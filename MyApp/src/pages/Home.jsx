@@ -1,87 +1,64 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
-import { getYunShiApi, xingZuo, ZhanBuNums } from '../request/auth'
+import { getYunShiApi, xingZuo as xingZuoApi, ZhanBuNums } from '../request/auth'
 import { commonStyles, COLORS } from '../styles/commonStyles'
 
 
 export default function Home() {
   const nav = useNavigation()
+  // 用户信息
   const [user, setUser] = useState(null)
+  // 幸运色
   const [color, setColor] = useState('')
+  // 幸运数字
   const [num, setNum] = useState('')
+  // 幸运色描述
   const [colorDesc, setColorDesc] = useState('')
+  // 幸运数字描述
   const [numDesc, setNumDesc] = useState('')
+  // 运势指数
   const [zhiShu, setZhishu] = useState(0)
+  // 运势建议
   const [yunShi, setYunShi] = useState('')
+  // 加载状态
   const [isLoading, setIsLoading] = useState(true)
-  const [err, setErr] = useState(false)
+
   // 星座缘分相关状态
-  const [zodiacFate, setZodiacFate] = useState(null)
+  const [xingZuo, setXingZuo] = useState(null)
   // 占卜次数相关状态
-  const [divinationStatus, setDivinationStatus] = useState({
+  const [ciStatus, setCiStatus] = useState({
+    // 当前占卜次数
     currentCount: 0,
+    // 最大占卜次数
     maxCount: 3,
+    // 剩余占卜次数
     remainingCount: 3,
+    // 会员类型
     vipType: '免费',
+    // 是否可以占卜
     canDivine: true
   })
 
   // 刷新占卜次数状态的函数
-  const refreshDivinationStatus = async (userId) => {
-    try {
-              const divinationRes = await ZhanBuNums(userId);
-      if (divinationRes.success) {
-        setDivinationStatus(divinationRes.data.data);
-      }
-    } catch (error) {
-      console.log('刷新占卜状态失败:', error);
+  const shuaStatus = async (userId) => {
+    const divinationRes = await ZhanBuNums(userId);
+    if (divinationRes.success) {
+      setCiStatus(divinationRes.data.data);
     }
   }
 
   const getUser = async () => {
     try {
-      const userObj = await AsyncStorage.getItem('user')
-      if (!userObj) {
-        setErr(true)
-        setIsLoading(false)
-        return
-      }
-
-      const users = JSON.parse(userObj)
+      // 1. 获取用户信息
+      const users = JSON.parse(await AsyncStorage.getItem('user'))
       setUser(users)
 
-      if (!users?._id) {
-        setErr(true)
-        setIsLoading(false)
-        return
-      }
-
-      // 并行获取所有数据
-      const [fortuneRes, zodiacRes, divinationRes] = await Promise.all([
-                    getYunShiApi(users._id),
-            xingZuo(users._id),
-            ZhanBuNums(users._id)
-      ]);
-
-      // 处理运势数据
-      if (fortuneRes.success && fortuneRes.data.data.dailyFortune) {
-        const fortuneData = fortuneRes.data.data.dailyFortune;
-        setColor(fortuneData.luckyColor)
-        setNum(fortuneData.luckyNumber)
-        setZhishu(fortuneData.fortuneScore)
-        setYunShi(fortuneData.yunShi)
-        setColorDesc(fortuneData.luckyColorDesc)
-        setNumDesc(fortuneData.luckyNumberDesc)
-
-        // 更新用户信息
-        const updatedUser = { ...users, ...fortuneRes.data.data };
-        setUser(updatedUser);
-        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-      } else if (users.dailyFortune) {
-        // 使用本地数据
-        const fortune = users.dailyFortune;
+      // 2. 获取运势数据
+      const res = await getYunShiApi(users._id)
+      if (res.success && res.data.data.dailyFortune) {
+        const fortune = res.data.data.dailyFortune
         setColor(fortune.luckyColor)
         setNum(fortune.luckyNumber)
         setZhishu(fortune.fortuneScore)
@@ -90,78 +67,46 @@ export default function Home() {
         setNumDesc(fortune.luckyNumberDesc)
       }
 
-      // 处理星座缘分数据
+      // 3. 获取星座缘分
+      const zodiacRes = await xingZuoApi(users._id)
       if (zodiacRes.success) {
-        setZodiacFate(zodiacRes.data.data);
+        setXingZuo(zodiacRes.data.data)
       }
 
-      // 处理占卜次数状态
+      // 4. 获取占卜次数
+      const divinationRes = await ZhanBuNums(users._id)
       if (divinationRes.success) {
-        setDivinationStatus(divinationRes.data.data);
+        setCiStatus(divinationRes.data.data)
       }
 
-      setIsLoading(false)
-      setErr(false)
     } catch (error) {
-      console.log('getUser error:', error)
-      setErr(true)
+      console.log('获取数据出错:', error)
+    } finally {
       setIsLoading(false)
     }
   }
 
 
 
-
-
-
   useEffect(() => {
-    const init = async () => {
-      try {
-        setIsLoading(true);
-        setErr(false);
-
-        await getUser();
-      } catch (error) {
-        setErr(true);
-        setIsLoading(false);
-      }
-    };
-
-    init();
+    getUser();
   }, [])
 
-  // 监听页面焦点，当从其他页面返回时刷新占卜状态
   useFocusEffect(
-    React.useCallback(() => {
-      // 页面获得焦点时，刷新占卜次数状态
-      const refreshStatus = async () => {
-        try {
-          const userObj = await AsyncStorage.getItem('user');
-          if (userObj) {
-            const users = JSON.parse(userObj);
-            if (users && users._id) {
-              await refreshDivinationStatus(users._id);
-            }
-          }
-        } catch (error) {
-          console.log('刷新状态失败:', error);
-        }
+    useCallback(() => {
+      const fetchData = async () => {
+        const users = JSON.parse(await AsyncStorage.getItem('user'));
+        await shuaStatus(users._id);
       };
-
-      refreshStatus();
+      fetchData();
     }, [])
   )
 
-  /**
-   * 渲染主要内容
-   * @returns {JSX.Element} 主要内容组件
-   */
-  const renderMainContent = () => (
+  return (
     <View style={commonStyles.container}>
-      {/* 主滚动容器 */}
       <ScrollView
         style={commonStyles.scrollView}
-        showsVerticalScrollIndicator={false} // 隐藏滚动条
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={commonStyles.scrollContent}
       >
         <View style={styles.content}>
@@ -182,30 +127,24 @@ export default function Home() {
             </TouchableOpacity>
           </View>
 
-          {/* ==================== 今日运势卡片区域 ==================== */}
           <View style={styles.dailySection}>
             <View style={commonStyles.card}>
-              {/* 运势卡片头部 */}
               <View style={styles.dailyHeader}>
                 <Text style={styles.dailyTitle}>🌟 今日运势</Text>
                 <Text style={styles.dailyDate}>{new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}</Text>
               </View>
 
-              {/* 运势信息网格 */}
               <View style={styles.fortuneGrid}>
-                {/* 幸运色显示 */}
                 <View style={styles.fortuneItem}>
                   <Text style={styles.fortuneEmoji}>🎨</Text>
                   <Text style={styles.fortuneLabel}>幸运色</Text>
                   <Text style={styles.fortuneValue}>{isLoading ? '-' : color || '-'}</Text>
                 </View>
-                {/* 幸运数字显示 */}
                 <View style={styles.fortuneItem}>
                   <Text style={styles.fortuneEmoji}>🔢</Text>
                   <Text style={styles.fortuneLabel}>幸运数字</Text>
                   <Text style={styles.fortuneValue}>{isLoading ? '-' : num || '-'}</Text>
                 </View>
-                {/* 运势指数显示 */}
                 <View style={styles.fortuneItem}>
                   <Text style={styles.fortuneEmoji}>⭐</Text>
                   <Text style={styles.fortuneLabel}>运势指数</Text>
@@ -215,22 +154,14 @@ export default function Home() {
                 </View>
               </View>
 
-              {/* 运势建议区域 */}
               <View style={styles.yunShi}>
                 {isLoading ? (
-                  /* 加载状态 */
                   <Text style={styles.adviceText}>运势加载中...</Text>
-                ) : err ? (
-                  /* 错误状态 */
-                  <Text style={styles.adviceText}>运势数据获取失败，请检查网络连接后重试</Text>
-                ) : yunShi ? (
-                  /* 有建议内容时的显示 */
+                ): yunShi ? (
                   <View>
-                    {/* 显示建议文本（限制40字符） */}
                     <Text style={styles.adviceText}>
                       {yunShi.length > 40 ? `${yunShi.substring(0, 40)}...` : yunShi}
                     </Text>
-                    {/* 如果内容超过40字符，显示"详细"按钮 */}
                     {yunShi.length > 40 && (
                       <TouchableOpacity
                         style={styles.detailButton}
@@ -250,38 +181,35 @@ export default function Home() {
                     )}
                   </View>
                 ) : (
-                  /* 无建议内容时的显示 */
                   <Text style={styles.adviceText}>暂无运势建议</Text>
                 )}
               </View>
             </View>
           </View>
 
-          {/* ==================== 快速占卜区域 ==================== */}
           <View style={styles.quickSection}>
             <Text style={styles.sectionTitle}>🔮 开始占卜</Text>
-            {/* 占卜选项网格 */}
             <View style={styles.quickGrid}>
               <TouchableOpacity
                 style={[
                   styles.quickCard,
-                  !divinationStatus.canDivine && styles.disabledCard
+                  !ciStatus.canDivine && styles.disabledCard
                 ]}
                 onPress={() => {
-                  if (divinationStatus.canDivine) {
-                    // 立即更新UI显示（乐观更新）
-                    if (divinationStatus.vipType !== '季会员') {
+                  if (ciStatus.canDivine) {
+                    // 乐观更新
+                    if (ciStatus.vipType !== '季会员') {
                       const newStatus = {
-                        ...divinationStatus,
-                        currentCount: divinationStatus.currentCount + 1,
-                        remainingCount: divinationStatus.remainingCount - 1,
-                        canDivine: (divinationStatus.currentCount + 1) < divinationStatus.maxCount
+                        ...ciStatus,
+                        currentCount: ciStatus.currentCount + 1,
+                        remainingCount: ciStatus.remainingCount - 1,
+                        canDivine: (ciStatus.currentCount + 1) < ciStatus.maxCount
                       };
-                      setDivinationStatus(newStatus);
+                      setCiStatus(newStatus);
                     }
                     nav.navigate('ZhanBu', { spreadType: 'single', question: '我的今日指引' })
                   } else {
-                    alert(`${divinationStatus.vipType}用户每日最多可进行${divinationStatus.maxCount}次占卜，今日次数已用完！\n\n升级会员解锁更多次数~`)
+                    alert(`${ciStatus.vipType}用户每日最多可进行${ciStatus.maxCount}次占卜，今日次数已用完！\n\n升级会员解锁更多次数~`)
                   }
                 }}
               >
@@ -290,91 +218,75 @@ export default function Home() {
                   <Text style={styles.quickTitle}>塔罗占卜</Text>
                   <Text style={[
                     styles.quickDesc,
-                    !divinationStatus.canDivine && styles.disabledText
+                    !ciStatus.canDivine && styles.disabledText
                   ]}>
-                    {divinationStatus.vipType === '季会员'
+                    {ciStatus.vipType === '季会员'
                       ? `探索内心的声音 (无限次数)`
-                      : divinationStatus.canDivine
-                        ? `探索内心的声音 (${divinationStatus.currentCount}/${divinationStatus.maxCount})`
-                        : `今日次数已用完 (${divinationStatus.currentCount}/${divinationStatus.maxCount})`
+                      : ciStatus.canDivine
+                        ? `探索内心的声音 (${ciStatus.currentCount}/${ciStatus.maxCount})`
+                        : `今日次数已用完 (${ciStatus.currentCount}/${ciStatus.maxCount})`
                     }
                   </Text>
                 </View>
-                {/* 会员标识 */}
-                {divinationStatus.vipType !== '免费' && (
+                {ciStatus.vipType !== '免费' && (
                   <View style={styles.vipBadge}>
-                    <Text style={styles.vipText}>{divinationStatus.vipType}</Text>
+                    <Text style={styles.vipText}>{ciStatus.vipType}</Text>
                   </View>
                 )}
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* ==================== 今日星座缘分区域 ==================== */}
           <View style={styles.zodiacSection}>
             <Text style={styles.sectionTitle}>💫 今日星座缘分</Text>
             <View style={styles.zodiacCard}>
-              {/* 用户星座显示 */}
               <View style={styles.userZodiacContainer}>
                 <Text style={styles.userZodiacLabel}>你的星座</Text>
                 <Text style={styles.userZodiacText}>
-                  {isLoading ? '...' : (zodiacFate?.userZodiac || '双鱼座')}
+                  {isLoading ? '...' : (xingZuo?.userZodiac || '双鱼座')}
                 </Text>
               </View>
 
-              {/* 星座缘分头部 */}
               <View style={styles.zodiacHeader}>
                 <View style={styles.targetZodiacContainer}>
                   <Text style={styles.zodiacLabel}>今日缘分星座</Text>
                   <Text style={styles.zodiacTarget}>
-                    {isLoading ? '加载中...' : (zodiacFate?.targetZodiac || '双鱼座')}
+                    {isLoading ? '加载中...' : (xingZuo?.targetZodiac || '双鱼座')}
                   </Text>
                 </View>
                 <View style={styles.fateTypeContainer}>
                   <Text style={styles.fateType}>
-                    {isLoading ? '-' : (zodiacFate?.fateType || '友情')}
+                    {isLoading ? '-' : (xingZuo?.fateType || '友情')}
                   </Text>
                   <Text style={styles.compatibilityScore}>
-                    {isLoading ? '-' : (zodiacFate?.compatibilityScore ? `${zodiacFate.compatibilityScore}%` : '88%')}
+                    {isLoading ? '-' : (xingZuo?.compatibilityScore ? `${xingZuo.compatibilityScore}%` : '88%')}
                   </Text>
                 </View>
               </View>
 
-              {/* 缘分描述 */}
               <View style={styles.fateDescription}>
                 <Text style={styles.fateDescText}>
                   {isLoading ? '正在为你寻找今日的星座缘分...' :
-                    (zodiacFate?.fateDescription || '今天与双鱼座的人能建立深厚友谊，你们会发现许多共同话题')
+                    (xingZuo?.fateDescription || '今天与双鱼座的人能建立深厚友谊，你们会发现许多共同话题')
                   }
                 </Text>
               </View>
 
-              {/* 相处建议 */}
               <View style={styles.fateAdvice}>
                 <Text style={styles.adviceLabel}>💡 相处建议</Text>
                 <Text style={styles.adviceText}>
                   {isLoading ? '加载中...' :
-                    (zodiacFate?.advice || '主动邀请对方参加有趣的活动')
+                    (xingZuo?.advice || '主动邀请对方参加有趣的活动')
                   }
                 </Text>
               </View>
             </View>
           </View>
 
-
         </View>
       </ScrollView>
     </View>
   );
-
-  /**
-   * 统一的组件渲染逻辑
-   * 根据不同状态返回对应的界面
-   */
-  return (() => {
-    // 正常状态，显示主要内容
-    return renderMainContent();
-  })();
 }
 
 const styles = StyleSheet.create({
@@ -516,7 +428,6 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
 
-  // 星座缘分区域
   zodiacSection: {
     paddingHorizontal: 20,
     marginTop: 30,
@@ -616,7 +527,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // 占卜次数限制相关样式
   disabledCard: {
     opacity: 0.5,
     backgroundColor: '#f5f5f5',

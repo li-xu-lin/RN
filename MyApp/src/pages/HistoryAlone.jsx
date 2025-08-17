@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { CardAloneApi } from '../request/auth';
 
-export default function HistoryAlone() {
-  // 导航相关
+export default function HistoryAlone({ historyId }) {
   const nav = useNavigation();
-  const route = useRoute();
   // 加载状态
   const [loading, setLoading] = useState(true);
   // 历史数据     
   const [historyData, setHistoryData] = useState(null);
-
-  // 从路由参数获取历史记录ID
-  const { historyId } = route.params;
 
   useEffect(() => {
     getAloneFn();
@@ -26,18 +21,17 @@ export default function HistoryAlone() {
 
       // 验证历史记录ID是否存在
       if (!historyId) {
-        console.error('历史记录ID为空');
         return;
       }
 
       // 调用API获取历史详情
-      const result = await CardAloneApi(historyId);
+      const res = await CardAloneApi(historyId);
 
       // 处理API响应结果
-      if (result.success && result.data.data) {
-        setHistoryData(result.data.data);
+      if (res.success && res.data.data) {
+        setHistoryData(res.data.data);
       } else {
-        console.error('获取历史详情失败:', result.data?.msg);
+        console.error(`获取历史详情失败`);
       }
     } catch (error) {
       console.error('获取详细数据失败:', error);
@@ -48,36 +42,33 @@ export default function HistoryAlone() {
 
   //获取卡片位置的中文显示
   const getPositionText = (position) => {
+    if (!position) return '未知位置';
     return position === 'upright' ? '正位' : '逆位';
   };
 
   //根据分数获取对应的颜色
   const getScoreColor = (score) => {
-    if (score >= 80) return '#4ECDC4';  // 高分：青色
-    if (score >= 60) return '#FECA57';  // 中分：黄色
-    return '#FF6B9D';                   // 低分：粉色
+    if (!score || typeof score !== 'number') return '#999';
+    if (score >= 80) return '#4ECDC4'; 
+    if (score >= 60) return '#FECA57';  
+    return '#FF6B9D';                  
   };
 
-  //渲染各方面含义的通用组件
-  const renderMeaningItem = (title, content, emoji) => (
-    <View style={styles.meaningItem} key={title}>
-      <Text style={styles.meaningTitle}>{emoji} {title}</Text>
-      <Text style={styles.meaningText}>{content}</Text>
+  return (
+    loading ? (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+        <Text style={styles.loadingText}>正在加载详细信息...</Text>
     </View>
-  );
-
-  //渲染通用内容容器
-  const renderContentSection = (title, content, emoji, containerStyle = 'contentContainer') => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{emoji} {title}</Text>
-      <View style={styles[containerStyle]}>
-        <Text style={styles.contentText}>{content}</Text>
+    ) : !historyData ? (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>未找到占卜记录</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => nav.goBack()}>
+          <Text style={styles.backButtonText}>返回</Text>
+        </TouchableOpacity>
       </View>
-    </View>
-  );
-
-  //渲染顶部导航栏
-  const renderHeader = () => (
+    ) : (
+      <View style={styles.container}>
     <View style={styles.header}>
       <TouchableOpacity
         style={styles.headerBackBtn}
@@ -88,123 +79,78 @@ export default function HistoryAlone() {
       <Text style={styles.headerTitle}>占卜详情</Text>
       <View style={styles.placeholder} />
     </View>
-  );
 
-  //渲染卡片信息区域
-  const renderCardInfo = () => (
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
     <View style={styles.cardSection}>
       <View style={styles.cardContainer}>
         <View style={styles.cardIcon}>
           <Text style={styles.cardEmoji}>🔮</Text>
         </View>
         <View style={styles.cardInfo}>
-          <Text style={styles.cardTitle}>
-            {historyData.cardSuit}{historyData.cardName}
-          </Text>
-          <Text style={styles.cardPosition}>
-            {getPositionText(historyData.position)} • {historyData.date} {historyData.time}
+                <Text style={styles.cardName}>{historyData.cardName || '未知卡牌'}</Text>
+                <Text style={styles.cardDetails}>
+                  {historyData.cardSuit || '未知花色'} • {getPositionText(historyData.position)}
           </Text>
         </View>
-        <View style={[styles.scoreTag, { backgroundColor: getScoreColor(historyData.score) }]}>
-          <Text style={styles.scoreText}>{historyData.score}分</Text>
+              <View style={styles.cardScore}>
+                <Text style={[styles.scoreText, { color: getScoreColor(historyData.score) }]}>
+                  {historyData.score || 0}分
+                </Text>
         </View>
       </View>
     </View>
-  );
 
-  //渲染各方面含义区域
-  const renderMeanings = () => {
-    // 各方面含义配置数组，减少重复代码
-    const meanings = [
-      { title: '综合运势', content: historyData.interpretation.meaning.general, emoji: '💫' },
-      { title: '爱情运势', content: historyData.interpretation.meaning.love, emoji: '💝' },
-      { title: '事业运势', content: historyData.interpretation.meaning.career, emoji: '💼' },
-      { title: '财运', content: historyData.interpretation.meaning.finance, emoji: '💰' },
-      { title: '健康运势', content: historyData.interpretation.meaning.health, emoji: '🍀' },
-      { title: '建议', content: historyData.interpretation.meaning.advice, emoji: '💡' }
-    ];
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>💭 占卜问题</Text>
+            <View style={styles.questionContainer}>
+              <Text style={styles.contentText}>"{historyData.question || '未记录问题'}"</Text>
+            </View>
+          </View>
 
-    return (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🎯 占卜结果</Text>
+            <View style={styles.resultContainer}>
+              <Text style={styles.contentText}>{historyData.resultSummary || '暂无解读摘要'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📖 详细解释</Text>
+            <View style={styles.interpretationContainer}>
+              <Text style={styles.contentText}>{historyData.interpretation?.detailedDescription || '暂无详细解读'}</Text>
+            </View>
+          </View>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🌟 各方面含义</Text>
-        {meanings.map(({ title, content, emoji }) =>
-          renderMeaningItem(title, content, emoji)
+            <View style={styles.meaningsContainer}>
+              <View style={styles.meaningItem}>
+                <Text style={styles.meaningTitle}>💝 爱情</Text>
+                <Text style={styles.meaningText}>{historyData.interpretation?.meaning?.love || '暂无爱情指引'}</Text>
+              </View>
+
+              <View style={styles.meaningItem}>
+                <Text style={styles.meaningTitle}>💼 事业</Text>
+                <Text style={styles.meaningText}>{historyData.interpretation?.meaning?.career || '暂无事业指引'}</Text>
+              </View>
+
+              <View style={styles.meaningItem}>
+                <Text style={styles.meaningTitle}>💰 财运</Text>
+                <Text style={styles.meaningText}>{historyData.interpretation?.meaning?.finance || '暂无财运指引'}</Text>
+              </View>
+
+              {historyData.interpretation?.meaning?.advice && (
+                <View style={styles.meaningItem}>
+                  <Text style={styles.meaningTitle}>💡 塔罗建议</Text>
+                  <Text style={styles.meaningText}>{historyData.interpretation.meaning.advice}</Text>
+                </View>
         )}
       </View>
-    );
-  };
-
-  //主要内容渲染函数
-  const renderMainContent = () => (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-      {/* 顶部导航栏 */}
-      {renderHeader()}
-
-      {/* 卡片信息 */}
-      {renderCardInfo()}
-
-      {/* 占卜问题 */}
-      {renderContentSection(
-        '占卜问题',
-        `"${historyData.question}"`,
-        '💭',
-        'questionContainer'
-      )}
-
-      {/* 占卜结果 */}
-      {renderContentSection(
-        '占卜结果',
-        historyData.resultSummary,
-        '🎯',
-        'resultContainer'
-      )}
-
-      {/* 详细解释 */}
-      {renderContentSection(
-        '详细解释',
-        historyData.interpretation.detailedDescription,
-        '📖',
-        'interpretationContainer'
-      )}
-
-      {/* 各方面含义 */}
-      {renderMeanings()}
+          </View>
     </ScrollView>
-  );
-
-  //渲染加载状态
-  const renderLoadingState = () => (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#8B5CF6" />
-      <Text style={styles.loadingText}>正在加载详细信息...</Text>
     </View>
+    )
   );
-
-  //渲染错误状态
-  const renderErrorState = () => (
-    <View style={styles.errorContainer}>
-      <Text style={styles.errorText}>未找到占卜记录</Text>
-      <TouchableOpacity style={styles.backButton} onPress={() => nav.goBack()}>
-        <Text style={styles.backButtonText}>返回</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  //统一的组件渲染逻辑
-  return (() => {
-    // 加载中状态
-    if (loading) return renderLoadingState();
-
-    // 数据为空状态
-    if (!historyData) return renderErrorState();
-
-    // 正常数据状态
-    return renderMainContent();
-  })();
 }
 
 const styles = StyleSheet.create({

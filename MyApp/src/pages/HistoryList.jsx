@@ -9,11 +9,8 @@ export default function HistoryList() {
 
   // 历史记录数据状态
   const [historyData, setHistoryData] = useState([]);
-  // 统计信息状态
-  const [stats, setStats] = useState({
-    totalCount: 0,        // 总占卜次数
-    thisMonthCount: 0     // 本月占卜次数
-  });
+  // 总占卜次数状态
+  const [totalCount, setTotalCount] = useState(0);
   // 加载状态
   const [loading, setLoading] = useState(true);
   // 是否显示全部记录的状态
@@ -26,60 +23,36 @@ export default function HistoryList() {
       setLoading(true);
 
       // 从本地存储获取用户信息
-      const userObj = await AsyncStorage.getItem('user');
-      const userData = userObj ? JSON.parse(userObj) : null;
+      const userData = JSON.parse(await AsyncStorage.getItem('user'))
 
       // 检查用户信息是否存在
-      if (!userData || !userData._id) {
-        // 用户信息不存在，设置空数据
+      if (!userData) {
         setHistoryData([]);
-        setStats({ totalCount: 0, thisMonthCount: 0 });
+        setTotalCount(0);
         return;
       }
 
       // 调用API获取历史记录
-      const result = await historyApi(userData._id);
+      const res = await historyApi(userData._id);
 
       // 检查API响应是否成功
-      if (result && (result.code === 200 || result.success === true || result.data)) {
-        // 解析历史记录数据，兼容不同的数据结构
-        const history = result.data?.data?.history || result.data?.history || result.data || [];
+      if (res) {
+        const history = res.data.data.history;
         setHistoryData(history);
 
-        // 计算统计数据
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-
-        // 筛选本月的记录
-        const thisMonthData = history.filter(item => {
-          const itemDate = new Date(item.createdAt);
-          return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
-        });
-
-        // 更新统计信息
-        setStats({
-          totalCount: history.length,           // 总记录数
-          thisMonthCount: thisMonthData.length  // 本月记录数
-        });
-      } else {
-        // API调用失败，设置空数据
-        setHistoryData([]);
-        setStats({ totalCount: 0, thisMonthCount: 0 });
+        // 更新总占卜次数
+        setTotalCount(history.length);
       }
     } catch (error) {
-      // 捕获异常，记录错误日志
-      console.error('获取历史记录失败:', error);
       setHistoryData([]);
-      setStats({ totalCount: 0, thisMonthCount: 0 });
+      setTotalCount(0);
     } finally {
-      // 无论成功失败都要停止加载状态
       setLoading(false);
     }
   };
 
   //切换显示全部/部分记录
-  const handleToggleShowAll = () => {
+  const isShowAll = () => {
     setShowAll(!showAll);
   };
 
@@ -89,13 +62,8 @@ export default function HistoryList() {
   }, []);
   const displayData = showAll ? historyData : historyData.slice(0, 3);
 
-  /**
-   * 渲染主要内容
-   * @returns {JSX.Element} 主要内容组件
-   */
-  const renderMainContent = () => (
+  return (
     <View style={styles.container}>
-      {/* 头部导航栏 */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <TouchableOpacity style={styles.backBtn} onPress={() => nav.goBack()}>
@@ -107,18 +75,11 @@ export default function HistoryList() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* 统计卡片 */}
         <View style={styles.statsCard}>
           <Text style={styles.statsTitle}>我的占卜统计</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{stats.totalCount}</Text>
-              <Text style={styles.statLabel}>总占卜次数</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{stats.thisMonthCount}</Text>
-              <Text style={styles.statLabel}>本月占卜</Text>
-            </View>
+          <View style={styles.statsContainer}>
+            <Text style={styles.statNumber}>{totalCount}</Text>
+            <Text style={styles.statLabel}>总占卜次数</Text>
           </View>
         </View>
 
@@ -126,7 +87,7 @@ export default function HistoryList() {
           <View style={styles.listHeader}>
             <Text style={styles.listTitle}>历史记录</Text>
             {historyData.length > 0 && (
-              <TouchableOpacity onPress={handleToggleShowAll}>
+              <TouchableOpacity onPress={isShowAll}>
                 <Text style={styles.newDivinationBtn}>
                   {showAll ? '收起' : '显示全部'}
                 </Text>
@@ -140,7 +101,6 @@ export default function HistoryList() {
               <Text style={styles.loadingText}>加载中...</Text>
             </View>
           ) : historyData.length === 0 ? (
-            /* 空状态卡片 */
             <View style={styles.emptyCard}>
               <Text style={styles.emptyText}>暂无占卜记录</Text>
               <Text style={styles.emptySubText}>开始您的第一次占卜吧</Text>
@@ -157,18 +117,12 @@ export default function HistoryList() {
                 <TouchableOpacity
                   key={item.id || index}
                   style={styles.historyItem}
-                  onPress={() => nav.navigate('DivinationDetail', { historyId: item.id })}
+                  onPress={() => nav.navigate('LiShiXiangQing', { historyId: item.id })}
                 >
-                  {/* 历史记录卡片 */}
                   <View style={styles.historyCard}>
                     <Text style={styles.question} numberOfLines={2}>
                       {item.question || '未记录问题'}
                     </Text>
-
-                    <Text style={styles.interpretation} numberOfLines={3}>
-                      {item.result || '暂无解读'}
-                    </Text>
-
                     <View style={styles.historyFooter}>
                       <Text style={styles.readMore}>点击查看详情 →</Text>
                     </View>
@@ -182,15 +136,6 @@ export default function HistoryList() {
       </ScrollView>
     </View>
   );
-
-  /**
-   * 统一的组件渲染逻辑
-   * 根据不同状态返回对应的界面
-   */
-  return (() => {
-    // 正常状态，显示主要内容
-    return renderMainContent();
-  })();
 };
 
 const styles = StyleSheet.create({
@@ -199,7 +144,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FE',
   },
   
-  // === 头部导航栏样式 ===
   header: {
     paddingTop: 50,
     paddingBottom: 20,
@@ -242,7 +186,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // === 卡片样式 ===
   statsCard: {
     backgroundColor: '#fff',
     margin: 20,
@@ -262,11 +205,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
+  statsContainer: {
     alignItems: 'center',
   },
   statNumber: {
@@ -299,8 +238,6 @@ const styles = StyleSheet.create({
     color: '#8B5CF6',
     fontWeight: '600',
   },
-
-  // 历史记录项样式
   historyItem: {
     marginBottom: 15,
   },
