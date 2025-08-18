@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { getYunShiApi, xingZuo as xingZuoApi, ZhanBuNums } from '../request/auth'
-import { commonStyles, COLORS } from '../styles/commonStyles'
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles'
 import { getLevelInfo } from '../utils/lvJiSuan'
 
 
@@ -126,9 +126,9 @@ export default function Home() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              style={styles.profileBtn}
-              onPress={() => nav.navigate('MyTab')}
+                    <TouchableOpacity
+          style={styles.profileBtn}
+          onPress={() => nav.navigate('MyTab')}
             >
               <Text style={styles.avatarText}>✨</Text>
             </TouchableOpacity>
@@ -170,9 +170,9 @@ export default function Home() {
                       {yunShi.length > 40 ? `${yunShi.substring(0, 40)}...` : yunShi}
                     </Text>
                     {yunShi.length > 40 && (
-                      <TouchableOpacity
-                        style={styles.detailButton}
-                        onPress={() => nav.navigate('JinRiYunShi', {
+                                  <TouchableOpacity
+              style={styles.detailButton}
+              onPress={() => nav.navigate('JinRiYunShi', {
                           fortuneData: {
                             dailyColor: color,
                             dailyNumber: num,
@@ -304,27 +304,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: COLORS.white,
     marginBottom: 5,
   },
   subGreeting: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600',
+    color: COLORS.white,
+    fontWeight: 'normal',
   },
   profileBtn: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 40,
+    height: 40,
+    borderRadius: 5,
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 20,
-    color: COLORS.white,
+    fontSize: 18,
+    color: COLORS.primary,
   },
   dailySection: {
     ...commonStyles.paddingHorizontal,
@@ -337,14 +337,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dailyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6B46C1',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
   },
   dailyDate: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '500',
+    fontSize: 12,
+    color: COLORS.darkGray,
+    fontWeight: 'normal',
   },
   fortuneGrid: {
     flexDirection: 'row',
@@ -366,19 +366,21 @@ const styles = StyleSheet.create({
   },
   fortuneValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: 'bold',
+    color: COLORS.text,
   },
   yunShi: {
-    backgroundColor: '#f8f5ff',
+    backgroundColor: COLORS.background,
     padding: 15,
-    borderRadius: 12,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   adviceText: {
     fontSize: 14,
-    color: '#6B46C1',
+    color: COLORS.text,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   detailButton: {
     marginTop: 10,
@@ -386,88 +388,84 @@ const styles = StyleSheet.create({
   },
   detailButtonText: {
     fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '600',
+    color: COLORS.primary,
+    fontWeight: 'normal',
   },
 
   quickSection: {
-    marginTop: 30,
-    paddingHorizontal: 20,
+    marginTop: 20,
+    paddingHorizontal: 15,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6B46C1',
-    marginBottom: 15,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 10,
   },
   quickGrid: {
     gap: 12,
   },
   quickCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
+    padding: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     flexDirection: 'row',
     alignItems: 'center',
   },
   quickIcon: {
-    fontSize: 28,
-    marginRight: 15,
-    width: 35,
+    fontSize: 24,
+    marginRight: 10,
+    width: 30,
     textAlign: 'center',
   },
   quickContent: {
     flex: 1,
   },
   quickTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.text,
     marginBottom: 2,
   },
   quickDesc: {
     fontSize: 12,
-    color: '#8B5CF6',
+    color: COLORS.darkGray,
     lineHeight: 16,
   },
 
   zodiacSection: {
-    paddingHorizontal: 20,
-    marginTop: 30,
+    paddingHorizontal: 15,
+    marginTop: 20,
   },
   zodiacCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
     padding: 15,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   userZodiacContainer: {
-    backgroundColor: '#f0f4ff',
+    backgroundColor: COLORS.background,
     padding: 10,
-    borderRadius: 10,
-    marginBottom: 12,
+    borderRadius: SIZES.radius,
+    marginBottom: 10,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   userZodiacLabel: {
     fontSize: 12,
-    color: '#8B5CF6',
-    fontWeight: '500',
+    color: COLORS.darkGray,
+    fontWeight: 'normal',
     marginBottom: 4,
   },
   userZodiacText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6B46C1',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
   },
   zodiacHeader: {
     flexDirection: 'row',
@@ -480,81 +478,85 @@ const styles = StyleSheet.create({
   },
   zodiacLabel: {
     fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
+    color: COLORS.darkGray,
+    fontWeight: 'normal',
     marginBottom: 4,
   },
   zodiacTarget: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#6B46C1',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
   },
   fateTypeContainer: {
     alignItems: 'flex-end',
   },
   fateType: {
     fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '600',
-    backgroundColor: '#f8f5ff',
-    paddingHorizontal: 12,
+    color: COLORS.text,
+    fontWeight: 'normal',
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: SIZES.radius,
     marginBottom: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   compatibilityScore: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#FF6B9D',
+    color: COLORS.primary,
   },
   fateDescription: {
-    backgroundColor: '#f8f5ff',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 15,
+    backgroundColor: COLORS.background,
+    padding: 10,
+    borderRadius: SIZES.radius,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   fateDescText: {
-    fontSize: 15,
-    color: '#6B46C1',
-    lineHeight: 22,
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 18,
     textAlign: 'center',
   },
   fateAdvice: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 15,
+    borderTopColor: COLORS.border,
+    paddingTop: 10,
   },
   adviceLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 5,
   },
   adviceText: {
     fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
+    color: COLORS.darkGray,
+    lineHeight: 18,
   },
 
   disabledCard: {
     opacity: 0.5,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.background,
   },
   disabledText: {
-    color: '#999',
+    color: COLORS.darkGray,
   },
   vipBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#FFD700',
-    paddingHorizontal: 6,
+    top: 5,
+    right: 5,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 5,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: SIZES.radius,
   },
   vipText: {
     fontSize: 10,
-    color: '#000',
-    fontWeight: '600',
+    color: COLORS.white,
+    fontWeight: 'normal',
   },
 })

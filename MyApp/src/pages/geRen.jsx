@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {View,Text,ScrollView,StyleSheet,TouchableOpacity,TextInput,Alert,StatusBar} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UpuserApi } from '../request/auth';
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 
 export default function GeRen({ navigation }) {
   //昵称
@@ -176,84 +177,57 @@ export default function GeRen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#F8F9FF',
+    ...commonStyles.container,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    ...commonStyles.header,
+    ...commonStyles.headerRow,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: SIZES.buttonHeight,
+    height: SIZES.buttonHeight,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.background,
+    ...commonStyles.centerContainer,
   },
   backButtonText: {
+    ...commonStyles.bodyText,
     fontSize: 18,
-    color: '#8B5CF6',
+    color: COLORS.primary,
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    ...commonStyles.headerTitle,
   },
   saveButton: {
+    ...commonStyles.primaryButton,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#8B5CF6',
-    borderRadius: 20,
   },
   saveButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
+    ...commonStyles.primaryButtonText,
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   scrollView: {
-    flex: 1,
+    ...commonStyles.scrollView,
   },
   formContainer: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...commonStyles.card,
+    margin: SIZES.padding,
   },
   formField: {
+    ...commonStyles.marginBottom,
     marginBottom: 20,
   },
   fieldLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    ...commonStyles.subtitle,
     marginBottom: 8,
   },
   fieldInput: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingHorizontal: 15,
+    ...commonStyles.input,
     paddingVertical: 12,
-    fontSize: 16,
-    color: '#333',
-    backgroundColor: '#F9FAFB',
   },
   multilineInput: {
     minHeight: 80,
@@ -264,27 +238,19 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   genderOption: {
+    ...commonStyles.secondaryButton,
     flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
   },
   genderOptionSelected: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   genderOptionText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    ...commonStyles.secondaryButtonText,
   },
   genderOptionTextSelected: {
-    color: '#fff',
-    fontWeight: 'bold',
+    ...commonStyles.primaryButtonText,
   },
   bottomSpacing: {
     height: 50,

@@ -3,9 +3,8 @@ import { Snackbar } from 'react-native-paper';
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { commonStyles, COLORS } from '../styles/commonStyles';
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 import { loginApi } from '../request/auth'
-
 
 
 export default function Login() {
@@ -115,61 +114,34 @@ const styles = StyleSheet.create({
     ...commonStyles.paddingHorizontal,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#6B46C1',
-    marginBottom: 8,
+    ...commonStyles.title,
+    fontSize: 22,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: COLORS.primary,
+    ...commonStyles.smallText,
+    textAlign: 'center',
   },
   formContainer: {
     ...commonStyles.paddingHorizontal,
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   label: {
-    fontSize: 14,
-    color: '#6B46C1',
-    marginBottom: 8,
-    fontWeight: '500',
+    ...commonStyles.bodyText,
+    marginBottom: 5,
   },
   input: {
-    height: 50,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E0E7FF',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...commonStyles.input,
+    height: SIZES.buttonHeight,
   },
-
   loginButton: {
-    height: 50,
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    ...commonStyles.primaryButton,
+    marginTop: 20,
   },
   loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    ...commonStyles.primaryButtonText,
   },
-
 });
 

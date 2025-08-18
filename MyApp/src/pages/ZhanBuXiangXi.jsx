@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { commonStyles, COLORS } from '../styles/commonStyles';
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 
 export default function ZhanBuXiangXi() {
   const nav = useNavigation();
@@ -10,12 +10,6 @@ export default function ZhanBuXiangXi() {
   // 从路由参数获取数据
   const { cards, jieDu, question, isReversed } = route.params || {};
 
-  // 调试信息 - 检查接收到的数据
-  console.log('ZhanBuXiangXi 接收到的数据:');
-  console.log('cards:', cards);
-  console.log('jieDu:', jieDu);
-  console.log('question:', question);
-  console.log('isReversed:', isReversed);
 
   return (
     <View style={commonStyles.container}>
@@ -154,10 +148,10 @@ export default function ZhanBuXiangXi() {
 const styles = StyleSheet.create({
   // 头部样式
   header: {
-    backgroundColor: '#8B5CF6',
-    paddingTop: 50,
+    backgroundColor: '#8b5cf6',
+    paddingTop: 60,
     paddingBottom: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -167,13 +161,13 @@ const styles = StyleSheet.create({
   },
   backBtnText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: 'normal',
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   placeholder: {
     width: 60,
@@ -182,33 +176,26 @@ const styles = StyleSheet.create({
   // 滚动视图样式
   scrollView: {
     flex: 1,
-    backgroundColor: '#f8f5ff',
+    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: 20,
   },
 
   // 区域标题样式
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6B46C1',
-    marginBottom: 15,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
     textAlign: 'center',
   },
 
   // 卡片区域样式
   cardSection: {
-    backgroundColor: '#fff',
-    margin: 20,
+    ...commonStyles.card,
+    margin: 15,
     marginTop: -10,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
   },
   cardContainer: {
     alignItems: 'center',
@@ -217,35 +204,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   cardPosition: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '600',
+    fontSize: 12,
+    color: '#8b5cf6',
+    fontWeight: 'normal',
   },
   cardPositionStatus: {
-    fontSize: 14,
-    color: '#FF6B9D',
-    fontWeight: '600',
+    fontSize: 12,
+    color: '#8b5cf6',
+    fontWeight: 'normal',
   },
   card: {
-    backgroundColor: '#f8f5ff',
-    borderRadius: 15,
-    padding: 30,
+    backgroundColor: COLORS.background,
+    borderRadius: SIZES.radius,
+    padding: 15,
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   cardName: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
   },
   cardElement: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '500',
+    fontSize: 12,
+    color: '#666',
+    fontWeight: 'normal',
   },
 
   // 关键词样式
@@ -253,128 +240,115 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: 8,
   },
   keyword: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#8b5cf6',
     color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginHorizontal: 4,
+    fontSize: 10,
+    fontWeight: 'normal',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
+    marginHorizontal: 3,
     marginVertical: 2,
   },
 
   // 详细内容区域样式
   detailContent: {
-    backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
+    ...commonStyles.card,
+    margin: 15,
   },
 
   // 问题回顾样式
   questionSection: {
-    backgroundColor: '#f8f5ff',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 20,
+    backgroundColor: COLORS.background,
+    padding: 10,
+    borderRadius: SIZES.radius,
+    marginBottom: 15,
   },
   questionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8B5CF6',
-    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
   },
   questionText: {
-    fontSize: 16,
-    color: '#6B46C1',
-    fontStyle: 'italic',
+    fontSize: 14,
+    color: '#333',
+    fontStyle: 'normal',
   },
 
   // 含义解读区域样式
   meaningSection: {
-    marginBottom: 20,
-  },
-  meaningSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6B46C1',
     marginBottom: 15,
   },
-  meaningDescription: {
-    fontSize: 15,
+  meaningSectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
     color: '#333',
-    lineHeight: 24,
-    textAlign: 'justify',
+    marginBottom: 10,
+  },
+  meaningDescription: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 18,
+    textAlign: 'left',
   },
 
   // 指引区域样式
   guidanceSection: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   guidanceItem: {
-    backgroundColor: '#f8f5ff',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  guidanceCategory: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B46C1',
+    backgroundColor: COLORS.background,
+    padding: 10,
+    borderRadius: SIZES.radius,
     marginBottom: 8,
   },
+  guidanceCategory: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
   guidanceText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
-    lineHeight: 22,
+    lineHeight: 16,
   },
 
   // 建议区域样式
   adviceSection: {
-    backgroundColor: '#f0f4ff',
-    padding: 20,
-    borderRadius: 15,
-    borderLeftWidth: 4,
-    borderLeftColor: '#8B5CF6',
+    backgroundColor: COLORS.background,
+    padding: 15,
+    borderRadius: SIZES.radius,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
   },
   adviceText: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#333',
-    lineHeight: 24,
-    textAlign: 'center',
+    lineHeight: 18,
+    textAlign: 'left',
   },
 
   // 无数据提示样式
   noDataSection: {
+    ...commonStyles.card,
     alignItems: 'center',
-    padding: 40,
-    backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    padding: 30,
+    margin: 15,
   },
   noDataText: {
-    fontSize: 18,
-    color: '#8B5CF6',
+    fontSize: 14,
+    color: '#333',
     textAlign: 'center',
-    marginBottom: 10,
-    fontWeight: '600',
+    marginBottom: 8,
+    fontWeight: 'bold',
   },
   noDataSubText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
     textAlign: 'center',
   },

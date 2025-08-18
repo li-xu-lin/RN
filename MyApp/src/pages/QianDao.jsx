@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QianDaoApi, getStatusApi, aloneUser } from '../request/auth';
+import { SIZES } from '../styles/commonStyles';
 
 export default function QianDao() {
     const nav = useNavigation();
@@ -14,7 +15,6 @@ export default function QianDao() {
     //总签到天数
     const [totalDay, setTotalDay] = useState(0);
     //签到动画状态
-
 
     // 每日签到固定奖励
     const dailyReward = { reward: '经验 +20', icon: '⭐', color: '#FFD700' };
@@ -83,8 +83,6 @@ export default function QianDao() {
                     console.log('获取最新用户信息失败，但签到已成功');
                 }
                 
-
-                
                 // 显示签到成功消息，如果升级了显示特殊提示
                 if (result.data.data.isLevelUp) {
                     Alert.alert(
@@ -94,9 +92,7 @@ export default function QianDao() {
                     );
                 } else {
                     Alert.alert(
-                        '签到成功！✨', 
-                        `签到成功！\n获得 ${result.data.data.expGained} 经验值\n\n当前等级：${result.data.data.newLevel} 级 (${result.data.data.levelTitle})`,
-                        [{ text: '继续加油！', style: 'default' }]
+                        '签到成功！'
                     );
                 }
                 
@@ -105,7 +101,6 @@ export default function QianDao() {
             }
             
         } catch (error) {
-            
             Alert.alert('签到失败', '网络错误，请重试');
         }
     };
@@ -206,22 +201,22 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     backBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        width: 35,
+        height: 35,
+        borderRadius: 0,
+        backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
     },
     backIcon: {
-        fontSize: 20,
-        color: '#fff',
+        fontSize: 18,
+        color: '#8b5cf6',
         fontWeight: 'bold',
         marginBottom: 9,
     },
     headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
+        fontSize: 16,
+        fontWeight: 'bold',
         color: '#fff',
     },
     placeholder: {
@@ -232,72 +227,64 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 100,
+        paddingHorizontal: 15,
+        paddingTop: 15,
+        paddingBottom: 80,
     },
     signCard: {
         backgroundColor: '#fff',
-        borderRadius: 20,
-        padding: 25,
-        marginBottom: 20,
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        elevation: 8,
+        borderRadius: 0,
+        padding: 20,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#ccc',
         alignItems: 'center',
     },
     welcomeText: {
-        fontSize: 20,
-        fontWeight: '700',
+        fontSize: 16,
+        fontWeight: 'bold',
         color: '#333',
         marginBottom: 8,
     },
     dateText: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#666',
-        marginBottom: 30,
+        marginBottom: 20,
     },
     signButtonContainer: {
-        marginBottom: 30,
+        marginBottom: 20,
         position: 'relative',
         alignItems: 'center',
         justifyContent: 'center',
     },
 
     signButton: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+        width: 100,
+        height: 100,
+        borderRadius: 0,
         backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        elevation: 10,
-        borderWidth: 3,
-        borderColor: '#8B5CF6',
+        borderWidth: 2,
+        borderColor: '#8b5cf6',
         position: 'relative',
         zIndex: 1,
     },
     signedButton: {
-        backgroundColor: '#f0fdf4',
-        borderColor: '#10B981',
+        backgroundColor: '#f5f5f5',
+        borderColor: '#8b5cf6',
     },
     signIcon: {
-        fontSize: 32,
-        marginBottom: 8,
+        fontSize: 24,
+        marginBottom: 5,
     },
     signText: {
-        fontSize: 12,
-        color: '#8B5CF6',
-        fontWeight: '600',
+        fontSize: 10,
+        color: '#8b5cf6',
+        fontWeight: 'normal',
     },
     signedText: {
-        color: '#10B981',
+        color: '#8b5cf6',
     },
     statsContainer: {
         flexDirection: 'row',
@@ -308,96 +295,88 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     statNumber: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#8B5CF6',
+        color: '#8b5cf6',
         marginBottom: 4,
     },
     statLabel: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#666',
     },
     statDivider: {
         width: 1,
-        height: 40,
-        backgroundColor: '#E5E7EB',
-        marginHorizontal: 20,
+        height: 30,
+        backgroundColor: '#ccc',
+        marginHorizontal: 15,
     },
     rewardsSection: {
-        marginBottom: 20,
+        marginBottom: 15,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#6B46C1',
-        marginBottom: 15,
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
     },
     dailyRewardCard: {
         backgroundColor: '#fff',
-        borderRadius: 15,
-        padding: 20,
+        borderRadius: 0,
+        padding: 15,
         alignItems: 'center',
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
-        borderWidth: 2,
-        borderColor: '#8B5CF6',
+        borderWidth: 1,
+        borderColor: '#ccc',
         position: 'relative',
     },
     rewardIcon: {
-        fontSize: 24,
-        marginBottom: 8,
+        fontSize: 20,
+        marginBottom: 5,
     },
 
     dailyRewardText: {
-        fontSize: 16,
-        fontWeight: '600',
+        fontSize: 12,
+        fontWeight: 'normal',
         color: '#333',
         textAlign: 'center',
-        marginTop: 8,
+        marginTop: 5,
     },
     completedBadge: {
         position: 'absolute',
-        top: -8,
-        right: -8,
-        backgroundColor: '#10B981',
-        borderRadius: 10,
-        paddingHorizontal: 6,
+        top: -5,
+        right: -5,
+        backgroundColor: '#8b5cf6',
+        borderRadius: 0,
+        paddingHorizontal: 4,
         paddingVertical: 2,
     },
     completedText: {
-        fontSize: 10,
+        fontSize: 8,
         color: '#fff',
-        fontWeight: '600',
+        fontWeight: 'normal',
     },
     rulesSection: {
         backgroundColor: '#fff',
-        borderRadius: 15,
-        padding: 20,
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
+        borderRadius: 0,
+        padding: 15,
+        borderWidth: 1,
+        borderColor: '#ccc',
     },
     rulesList: {
         gap: 8,
     },
     ruleItem: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#666',
-        lineHeight: 20,
+        lineHeight: 16,
     },
     calendarIcon: {
-        fontSize: 20,
-        marginBottom: 8,
-        fontWeight: '600',
-        color: '#8B5CF6',
+        fontSize: 16,
+        marginBottom: 5,
+        fontWeight: 'normal',
+        color: '#8b5cf6',
     },
     signedIcon: {
-        color: '#10B981',
+        color: '#8b5cf6',
     },
 
     checkMark: {
@@ -405,7 +384,7 @@ const styles = StyleSheet.create({
         bottom: -10,
         right: -10,
         backgroundColor: '#10B981',
-        borderRadius: 15,
+        borderRadius: SIZES.radius,
         width: 30,
         height: 30,
         justifyContent: 'center',
@@ -434,8 +413,8 @@ const styles = StyleSheet.create({
     },
     rewardCard: {
         backgroundColor: '#fff',
-        borderRadius: 15,
-        padding: 20,
+        borderRadius: SIZES.radius,
+        padding: 15,
         marginBottom: 20,
         shadowColor: '#8B5CF6',
         shadowOffset: { width: 0, height: 2 },
@@ -472,8 +451,8 @@ const styles = StyleSheet.create({
     },
     infoCard: {
         backgroundColor: '#fff',
-        borderRadius: 15,
-        padding: 20,
+        borderRadius: SIZES.radius,
+        padding: 15,
         shadowColor: '#8B5CF6',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,

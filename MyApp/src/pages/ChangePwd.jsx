@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert, StatusBar } from 'react-native';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { UpPwd } from '../request/auth';
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 
 export default function ChangePwd() {
   // 获取导航对象
@@ -186,101 +186,68 @@ export default function ChangePwd() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#F8F9FF',
+    ...commonStyles.container,
   },
-
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    ...commonStyles.header,
+    ...commonStyles.headerRow,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: SIZES.buttonHeight,
+    height: SIZES.buttonHeight,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.background,
+    ...commonStyles.centerContainer,
   },
   backButtonText: {
+    ...commonStyles.bodyText,
     fontSize: 18,
-    color: '#8B5CF6',
+    color: COLORS.primary,
     fontWeight: 'bold',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    ...commonStyles.headerTitle,
   },
   placeholder: {
-    width: 40,
+    width: SIZES.buttonHeight,
   },
-
   scrollView: {
-    flex: 1,
+    ...commonStyles.scrollView,
   },
-
   formContainer: {
-    backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...commonStyles.card,
+    margin: SIZES.padding,
   },
 
   formField: {
+    ...commonStyles.marginBottom,
     marginBottom: 20,
   },
   fieldLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    ...commonStyles.subtitle,
     marginBottom: 8,
   },
-
   passwordContainer: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    backgroundColor: '#F9FAFB',
+    ...commonStyles.input,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   passwordInput: {
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#333',
+    ...commonStyles.input,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
-
   submitButton: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
+    ...commonStyles.primaryButton,
     paddingVertical: 15,
-    alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
   submitButtonDisabled: {
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#fff',
+    ...commonStyles.primaryButtonText,
     fontSize: 16,
-    fontWeight: 'bold',
   },
 
   bottomSpacing: {

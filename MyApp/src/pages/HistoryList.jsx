@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { historyApi } from '../request/auth';
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 export default function HistoryList() {
   // 获取导航对象
   const nav = useNavigation();
@@ -66,7 +67,7 @@ export default function HistoryList() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => nav.goBack()}>
+                      <TouchableOpacity style={styles.backBtn} onPress={() => nav.goBack()}>
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>占卜历史</Text>
@@ -145,12 +146,10 @@ const styles = StyleSheet.create({
   },
   
   header: {
-    paddingTop: 50,
+    paddingTop: 60,
     paddingBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#8B5CF6',
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    paddingHorizontal: 15,
+    backgroundColor: '#8b5cf6',
   },
   headerContent: {
     flexDirection: 'row',
@@ -158,21 +157,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 35,
+    height: 35,
+    borderRadius: 5,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },
   backIcon: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#8b5cf6',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: 'bold',
     flex: 1,
     textAlign: 'center',
     color: '#fff',
@@ -188,30 +187,27 @@ const styles = StyleSheet.create({
 
   statsCard: {
     backgroundColor: '#fff',
-    margin: 20,
+    margin: 15,
     marginBottom: 10,
-    padding: 20,
-    borderRadius: 15,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    padding: 15,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   statsTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 15,
+    marginBottom: 10,
     textAlign: 'center',
   },
   statsContainer: {
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#8B5CF6',
+    color: '#8b5cf6',
     marginBottom: 5,
   },
   statLabel: {
@@ -220,63 +216,60 @@ const styles = StyleSheet.create({
   },
 
   listContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
   },
   listHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   listTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
   },
   newDivinationBtn: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '600',
+    fontSize: 12,
+    color: '#8b5cf6',
+    fontWeight: 'normal',
   },
   historyItem: {
-    marginBottom: 15,
+    marginBottom: 10,
   },
   historyCard: {
     backgroundColor: '#fff',
-    padding: 20,
-    minHeight: 120,
-    borderRadius: 15,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    padding: 15,
+    minHeight: 80,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   question: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#333',
-    fontWeight: '600',
-    marginBottom: 15,
-    lineHeight: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    lineHeight: 18,
   },
   interpretation: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
-    lineHeight: 22,
-    marginBottom: 15,
+    lineHeight: 16,
+    marginBottom: 10,
   },
   historyFooter: {
     alignItems: 'flex-end',
   },
   readMore: {
     fontSize: 12,
-    color: '#8B5CF6',
-    fontWeight: '600',
+    color: '#8b5cf6',
+    fontWeight: 'normal',
   },
 
   loadingContainer: {
     alignItems: 'center',
-    padding: 40,
+    padding: 30,
   },
   loadingText: {
     marginTop: 10,
@@ -286,37 +279,34 @@ const styles = StyleSheet.create({
 
   emptyCard: {
     backgroundColor: '#fff',
-    padding: 40,
+    padding: 30,
     alignItems: 'center',
-    margin: 20,
-    borderRadius: 15,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    margin: 15,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#333',
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginBottom: 5,
   },
   emptySubText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#999',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   startBtn: {
-    backgroundColor: '#8B5CF6',
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 25,
+    backgroundColor: '#8b5cf6',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 5,
   },
   startBtnText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '600',
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'normal',
   },
 
   bottomSpace: {

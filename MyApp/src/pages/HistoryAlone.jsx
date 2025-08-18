@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { CardAloneApi } from '../request/auth';
+import { SIZES } from '../styles/commonStyles';
 
 export default function HistoryAlone({ historyId }) {
   const nav = useNavigation();
@@ -63,7 +64,7 @@ export default function HistoryAlone({ historyId }) {
     ) : !historyData ? (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>未找到占卜记录</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => nav.goBack()}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => nav.goBack()}>
           <Text style={styles.backButtonText}>返回</Text>
         </TouchableOpacity>
       </View>
@@ -233,8 +234,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 15,
+    padding: 15,
+    borderRadius: SIZES.radius,
     shadowColor: '#8B5CF6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
   scoreTag: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 15,
+    borderRadius: SIZES.radius,
   },
   scoreText: {
     fontSize: 14,
@@ -290,8 +291,8 @@ const styles = StyleSheet.create({
 
   contentContainer: {
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 15,
+    padding: 15,
+    borderRadius: SIZES.radius,
   },
   contentText: {
     fontSize: 16,
@@ -301,20 +302,20 @@ const styles = StyleSheet.create({
 
   questionContainer: {
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 15,
+    padding: 15,
+    borderRadius: SIZES.radius,
     borderLeft: 4,
     borderLeftColor: '#8B5CF6',
   },
   resultContainer: {
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 15,
+    padding: 15,
+    borderRadius: SIZES.radius,
   },
   interpretationContainer: {
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 15,
+    padding: 15,
+    borderRadius: SIZES.radius,
   },
 
   meaningItem: {

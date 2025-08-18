@@ -2,21 +2,20 @@ import { StyleSheet } from 'react-native';
 
 // 公共颜色常量
 export const COLORS = {
-  primary: '#8B5CF6',
-  background: '#f8f5ff',
+  primary: '#8b5cf6',
+  background: '#f5f5f5',
   white: '#fff',
   darkGray: '#666',
   text: '#333',
-  border: '#e0e0e0',
-  shadow: 'rgba(0, 0, 0, 0.1)',
+  border: '#ccc',
 };
 
 // 公共尺寸常量
 export const SIZES = {
-  padding: 20,
-  radius: 15,
-  headerHeight: 50,
-  buttonHeight: 45,
+  padding: 15,
+  radius: 5,
+  headerHeight: 60,
+  buttonHeight: 40,
 };
 
 // 公共样式
@@ -40,11 +39,8 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   
   // 头部相关
@@ -53,8 +49,6 @@ export const commonStyles = StyleSheet.create({
     paddingTop: SIZES.headerHeight,
     paddingBottom: 20,
     paddingHorizontal: SIZES.padding,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   
   headerRow: {
@@ -69,65 +63,65 @@ export const commonStyles = StyleSheet.create({
     color: COLORS.white,
   },
   
-  // 按钮相关
+    // 按钮相关
   primaryButton: {
     backgroundColor: COLORS.primary,
-    borderRadius: 12,
+    borderRadius: SIZES.radius,
     height: SIZES.buttonHeight,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
   },
-  
+
   primaryButtonText: {
     color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: 'normal',
   },
-  
+
   secondaryButton: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: SIZES.radius,
     height: SIZES.buttonHeight,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
-  
+
   secondaryButtonText: {
     color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: 'normal',
   },
   
-  // 文本相关
+    // 文本相关
   title: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 10,
+  },
+
+  subtitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
     color: COLORS.text,
     marginBottom: 8,
   },
-  
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 6,
-  },
-  
+
   bodyText: {
     fontSize: 14,
     color: COLORS.text,
-    lineHeight: 20,
+    lineHeight: 18,
   },
-  
+
   smallText: {
     fontSize: 12,
     color: COLORS.darkGray,
   },
-  
+
   whiteText: {
     color: COLORS.white,
   },
@@ -147,12 +141,12 @@ export const commonStyles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   
-  marginTop: {
-    marginTop: 15,
+    marginTop: {
+    marginTop: 10,
   },
-  
+
   marginBottom: {
-    marginBottom: 15,
+    marginBottom: 10,
   },
   
   padding: {
@@ -163,18 +157,14 @@ export const commonStyles = StyleSheet.create({
     paddingHorizontal: SIZES.padding,
   },
   
-  // 输入框相关
+    // 输入框相关
   input: {
     backgroundColor: COLORS.white,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     fontSize: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
-  },
-  
-  inputFocused: {
-    borderColor: COLORS.primary,
   },
 }); 

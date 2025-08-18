@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { commonStyles, COLORS } from '../styles/commonStyles';
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles';
 import { addCardApi } from '../request/auth';
 
 export default function ZhanBu() {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: SIZES.radius,
     ...commonStyles.centerContainer,
   },
 
@@ -188,27 +188,27 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 8,
   },
 
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 14,
+    color: COLORS.darkGray,
     textAlign: 'center',
   },
 
   questionSection: {
-    padding: 20,
+    padding: 15,
   },
 
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
+    color: COLORS.text,
+    marginBottom: 10,
   },
 
   yuShe: {
@@ -216,10 +216,10 @@ const styles = StyleSheet.create({
   },
 
   suggestedTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 10,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.darkGray,
+    marginBottom: 8,
   },
 
   questionTags: {
@@ -229,27 +229,27 @@ const styles = StyleSheet.create({
   },
 
   questionTag: {
-    backgroundColor: '#FFF',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: SIZES.radius,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    marginBottom: 8,
+    borderColor: COLORS.border,
+    marginBottom: 6,
   },
 
   selectedTag: {
-    backgroundColor: '#8B5CF6',
-    borderColor: '#8B5CF6',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
 
   questionTagText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 12,
+    color: COLORS.darkGray,
   },
 
   selectedTagText: {
-    color: '#FFF',
+    color: COLORS.white,
   },
 
   customQuestion: {
@@ -257,20 +257,20 @@ const styles = StyleSheet.create({
   },
 
   customQuestionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 10,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.darkGray,
+    marginBottom: 8,
   },
 
   questionInput: {
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 15,
-    fontSize: 16,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
+    padding: 10,
+    fontSize: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    minHeight: 80,
+    borderColor: COLORS.border,
+    minHeight: 60,
     textAlignVertical: 'top',
   },
 
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
 
   drawButton: {
     backgroundColor: '#8B5CF6',
-    borderRadius: 25,
+    borderRadius: SIZES.radius,
     padding: 18,
     alignItems: 'center',
   },

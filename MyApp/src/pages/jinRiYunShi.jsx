@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import React, { useEffect, useState } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { commonStyles, COLORS, SIZES } from '../styles/commonStyles'
 
 export default function JinRiYunShi() {
   const nav = useNavigation();
@@ -151,52 +152,46 @@ const styles = StyleSheet.create({
 
   // 卡片基础样式
   overviewCard: {
-    backgroundColor: '#fff',
-    margin: 20,
+    backgroundColor: COLORS.white,
+    margin: 15,
     marginTop: -10,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
+    borderRadius: SIZES.radius,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   adviceCard: {
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    backgroundColor: COLORS.white,
+    marginHorizontal: 15,
+    marginBottom: 15,
+    borderRadius: SIZES.radius,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
 
   tipCard: {
-    backgroundColor: '#f8f5ff',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 15,
-    padding: 20,
+    backgroundColor: COLORS.background,
+    marginHorizontal: 15,
+    marginBottom: 15,
+    borderRadius: SIZES.radius,
+    padding: 15,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
+    borderColor: COLORS.border,
   },
 
   // 卡片标题
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6B46C1',
-    marginBottom: 15,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 10,
   },
   dateText: {
-    fontSize: 14,
-    color: '#8B5CF6',
+    fontSize: 12,
+    color: COLORS.darkGray,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
   },
 
   // 运势网格
@@ -219,30 +214,30 @@ const styles = StyleSheet.create({
   },
   fortuneValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: 'bold',
+    color: COLORS.text,
   },
 
   // 建议文本
   adviceText: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
-    textAlign: 'justify',
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 18,
+    textAlign: 'left',
   },
 
 
   // 提示卡片
   tipTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B46C1',
-    marginBottom: 10,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 8,
   },
   tipText: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    lineHeight: 20,
+    fontSize: 12,
+    color: COLORS.darkGray,
+    lineHeight: 16,
   },
 
   // 错误状态
@@ -250,22 +245,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 15,
   },
   errorText: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
+    fontSize: 14,
+    color: COLORS.darkGray,
+    marginBottom: 15,
   },
   backButton: {
-    backgroundColor: '#8B5CF6',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: SIZES.radius,
   },
   backButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: 'normal',
   },
 });
